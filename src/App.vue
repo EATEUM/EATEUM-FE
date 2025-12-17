@@ -1,4 +1,6 @@
-<script setup></script>
+<script setup>
+import { Button } from '@/components/ui/button'
+</script>
 <!-- tawilwind 확인용 임시! -->
 <template>
   <div class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
@@ -13,5 +15,7 @@
     >
       마우스를 올려보세요
     </button>
+
+    <Button>Click me</Button>
   </div>
 </template>
