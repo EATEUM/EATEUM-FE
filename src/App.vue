@@ -1,8 +1,8 @@
-<script setup>
+<!-- <script setup>
 import { Button } from '@/components/ui/button'
-</script>
+</script> -->
 <!-- tawilwind 확인용 임시! -->
-<template>
+<!-- <template>
   <div class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
     <h1 class="text-4xl font-bold text-blue-600 underline">Tailwind CSS 연동 성공! 🎉</h1>
 
@@ -17,5 +17,33 @@ import { Button } from '@/components/ui/button'
     </button>
 
     <Button>Click me</Button>
+  </div>
+</template> -->
+
+
+<script setup>
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card'
+</script>
+
+<template>
+  <div class="flex items-center justify-center min-h-screen bg-gray-100">
+    <Card class="w-[400px]">
+      <CardHeader>
+        <CardTitle>🍎 냉장고 재료 추가</CardTitle>
+      </CardHeader>
+      
+      <CardContent>
+        <div class="flex w-full max-w-sm items-center gap-1.5">
+          <Input type="text" placeholder="재료 이름을 입력하세요 (예: 계란)" />
+          <Button>추가하기</Button>
+        </div>
+      </CardContent>
+      
+      <CardFooter class="text-sm text-gray-500">
+        설치가 아주 잘 되었습니다! 🎉
+      </CardFooter>
+    </Card>
   </div>
 </template>
