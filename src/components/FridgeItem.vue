@@ -10,6 +10,7 @@ const props = defineProps({
 const emit = defineEmits(['deleteItem']);
 const isImageError = ref(false);
 
+// 애플 이모지 받아오기
 const appleEmojiUrl = computed(() => {
   const codePoints = Array.from(props.itemImg)
     .map(char => char.codePointAt(0).toString(16).toLowerCase())
@@ -21,20 +22,39 @@ const appleEmojiUrl = computed(() => {
 const categoryStyle = computed(() => {
   const name = props.itemName;
   const img = props.itemImg;
-  const meat = Array.from('🍗🐷🥩🥓🌭🍖');
-  const seafood = Array.from('🐟🦑🦐🦀🐚🦪🐙🍥🍣🌊🐳');
-  const veggie = Array.from('🥔🍠🧅🧄🌱🥬🌫️🍃 Cucumber 🥒🎃🍆🥕🫑 Broccoli 🥦🍅🌿🫚🪷🪵🌸🍄🫛🥗🎋🥬');
-  const fruitDiary = Array.from('🍎🍐🍌🍋🍒🥚🥛🧀 Pineapple 🍍🥑🍰🍦');
-  const grain = Array.from('🍚🍜🍞🥖 Rice Cake 🍡🥟🥞🍤🌾🌮⚪');
-  const seasoning = Array.from('🌶️🍶🥘🧂🍬🌾🍯🏺🍾🥣진🐔🥫🟡🔥🧊🧈🫒⚫🟢🤎🍁🍘⬜🖤');
 
-  if (meat.includes(img) || name.includes('고기')) return { backgroundColor: '#FFF0F0' };
-  if (seafood.includes(img) || name.includes('어')) return { backgroundColor: '#F0F7FF' };
-  if (veggie.includes(img) || name.includes('파')) return { backgroundColor: '#F2FFF5' };
-  if (fruitDiary.includes(img) || name.includes('사과')) return { backgroundColor: '#FFFDF0' };
-  if (grain.includes(img) || name.includes('면')) return { backgroundColor: '#F7F7F7' };
-  if (seasoning.includes(img) || name.includes('고추')) return { backgroundColor: '#FFF9F0' };
-  return { backgroundColor: '#F9F9F9' };
+  //육류
+  const meat = Array.from('🍗🐷🥩🥓🌭🍖🐔');
+  //해산물
+  const seafood = Array.from('🐟🦑🦐🦀🐚🦪🐙🍥🍣🌊🐳');
+  //채소
+  const veggie = Array.from('🥔🍠🧅🧄🌱🥬🥒🎃🍆🥕🫑🥦🌿🫚🪷🍄🫛🥗🎋');
+  //과일
+  const fruit = Array.from('🍎🍐🍌🍋🍒🍍🥑🍓🫐🍇🍈🍊🍏🍎');
+  //유제품 및 알류
+  const dairyEgg = Array.from('🥚🥛🧀🧈🍦🍰');
+  //곡류 및 면
+  const grain = Array.from('🍚🍜🍞🥖🍡🥟🥞🍤🌾🌮');
+  //양념 및 기타
+  const seasoning = Array.from('🌶️🍶🥘🧂🍬🍯🏺🍾🥣🥫🟡🔥🧊🫒⚫🟢🤎⬜🖤');
+
+  // 카테고리 판별 로직
+  if (meat.includes(img) || name.includes('고기') || name.includes('치킨')) 
+    return { backgroundColor: '#FFD6D6' }; // 분홍 (육류)
+  if (seafood.includes(img) || name.includes('어') || name.includes('회')) 
+    return { backgroundColor: '#CDE4FF' }; // 하늘 (해산물)
+  if (veggie.includes(img) || name.includes('파') || name.includes('물물')) 
+    return { backgroundColor: '#D1FADF' }; // 민트그린 (채소)
+  if (fruit.includes(img) || name.includes('사과') || name.includes('토마토')) 
+    return { backgroundColor: '#FFD9B3' }; // 연주황 (과일)
+  if (dairyEgg.includes(img) || name.includes('계란') || name.includes('우유')) 
+    return { backgroundColor: '#FEF08A' }; // 레몬노랑 (유제품/알류)
+  if (grain.includes(img) || name.includes('면') || name.includes('빵')) 
+    return { backgroundColor: '#E5E7EB' }; // 실버그레이 (곡류)
+  if (seasoning.includes(img) || name.includes('고추') || name.includes('소스')) 
+    return { backgroundColor: '#FBCFE8' }; // 연보라/핑크 (양념)
+  
+  return { backgroundColor: '#E5E7EB' };
 });
 </script>
 
