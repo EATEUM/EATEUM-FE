@@ -8,7 +8,7 @@ import Footer from './components/layout/Footer.vue'
   <div class="font-pretendard flex min-h-screen flex-col">
     <Navbar />
 
-    <main class="flex w-full flex-1 justify-center bg-[#F0EEE9] pt-[65px]">
+    <main class="flex w-full flex-1 justify-center bg-[#F0EEE9] pt-16.25">
       <div class="w-full">
         <RouterView />
       </div>
