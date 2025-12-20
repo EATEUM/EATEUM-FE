@@ -54,7 +54,7 @@ const categoryStyle = computed(() => {
     class="group relative flex aspect-[1.3/1] w-full flex-col items-center justify-center rounded-2xl border border-stone-100 bg-white shadow-[0px_2px_8px_rgba(0,0,0,0.03)] transition-all hover:-translate-y-1"
   >
     <div
-      class="mb-1.5 flex h-[80px] w-[80px] items-center justify-center rounded-full"
+      class="mb-1.5 flex h-20 w-20 items-center justify-center rounded-full"
       :style="categoryStyle"
     >
       <img
