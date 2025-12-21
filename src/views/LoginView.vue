@@ -9,7 +9,7 @@ const router = useRouter()
 const email = ref('')
 const password = ref('')
 
-const handleLogin = async (event) => {
+const handleLogin = async () => {
   const loginData = {
     email: email.value,
     password: password.value,
