@@ -70,7 +70,7 @@ const preferredCategories = [
               <p class="text-neutral-500 text-base font-normal font-['Manrope']">welcome@eateum.com</p>
             </div>
           </div>
-          <button class="h-10 px-5 bg-orange-200 rounded-lg text-stone-700 text-sm font-bold transition-all hover:bg-orange-300">
+          <button class="h-10 px-5 bg-[#FFE8A3] rounded-lg text-stone-700 text-sm font-bold transition-all hover:bg-orange-300">
             프로필 수정
           </button>
         </div>
@@ -105,7 +105,7 @@ const preferredCategories = [
         <div v-for="recipe in likedRecipes" :key="recipe.id" class="flex flex-col gap-3 group cursor-pointer relative">
           <div class="relative aspect-square bg-stone-200 rounded-xl overflow-hidden shadow-sm transition-transform group-hover:-translate-y-2">
             <img :src="recipe.img" :alt="recipe.title" class="w-full h-full object-cover" />
-            <div class="absolute right-3 top-3 w-8 h-8 bg-black/30 backdrop-blur-[2px] rounded-full flex justify-center items-center">
+            <div class="absolute right-3 top-3 w-8 h-8 bg-[#FFE8A3] backdrop-blur-[2px] rounded-full flex justify-center items-center">
                <Heart class="w-5 h-5 fill-red-600 text-red-600" />
             </div>
           </div>
@@ -132,7 +132,7 @@ const preferredCategories = [
             <h3 class="text-stone-700 text-lg font-bold">월별 요리 활동</h3>
             <div class="h-56 flex justify-between items-end px-2">
               <div v-for="item in monthlyActivity" :key="item.month" class="flex flex-col items-center gap-1 flex-1">
-                <div :class="['w-10 rounded transition-all', item.height, item.active ? 'bg-orange-200' : 'bg-stone-200']"></div>
+                <div :class="['w-10 rounded transition-all', item.height, item.active ? 'bg-[#FFE8A3]' : 'bg-stone-200']"></div>
                 <span :class="['text-xs', item.active ? 'font-bold text-stone-700' : 'text-neutral-500']">{{ item.month }}</span>
               </div>
             </div>
