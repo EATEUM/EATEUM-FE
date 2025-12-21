@@ -1,61 +1,89 @@
 <script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import axios from 'axios';
-import { useAuthStore } from '@/stores/auth';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 
-const router = useRouter();
-const authStore = useAuthStore();
-
-const email = ref('');
-const password = ref('');
+const router = useRouter()
+const email = ref('')
+const password = ref('')
 
 const handleLogin = async () => {
-  try {
-    // 백엔드 UserController의 /user/login 호출
-    const res = await axios.post('http://localhost:8080/user/login', {
-      email: email.value,
-      password: password.value
-    });
-
-    if (res.data.success) {
-      // 서버에서 받은 accessToken 저장
-      authStore.setToken(res.data.data.accessToken);
-      alert("로그인 성공!");
-      router.push('/fridge'); // 냉장고 페이지로 이동
-    }
-  } catch (err) {
-    alert(err.response?.data?.message || "로그인 정보를 확인하세요.");
+  const loginData = {
+    email: email.value,
+    password: password.value,
   }
-};
+
+  const pwdRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,15}$/
+  if (!pwdRegex.test(loginData.password)) {
+    alert('비밀번호는 8~15자의 알파벳 대소문자, 숫자, 특수문자를 포함해야 합니다.')
+    return
+  }
+
+  try {
+    console.log('서버로 보낼 데이터:', loginData)
+    // const response = await axios.post('/api/login', loginData)
+
+    alert('반가워요! 로그인에 성공했습니다.')
+    router.push('/') // 메인 페이지로 이동
+  } catch (error) {
+    alert('로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.')
+  }
+}
+
+const goToSignUp = () => {
+  router.push('/signup')
+}
 </script>
 
 <template>
-  <div class="flex h-screen items-center justify-center bg-stone-50">
-    <Card class="w-[400px] shadow-lg border-none rounded-3xl p-4">
-      <CardHeader class="text-center pb-8">
-        <CardTitle class="text-3xl font-black text-neutral-800">EAT:EUM</CardTitle>
-        <p class="text-stone-500 text-sm mt-2">나만의 냉장고 서비스를 시작해 보세요.</p>
-      </CardHeader>
-      <CardContent class="space-y-4">
-        <div class="space-y-2">
-          <label class="text-xs font-bold text-neutral-500 ml-1">이메일</label>
-          <Input v-model="email" placeholder="email@example.com" class="h-12 rounded-xl border-stone-200" />
-        </div>
-        <div class="space-y-2 pb-4">
-          <label class="text-xs font-bold text-neutral-500 ml-1">비밀번호</label>
-          <Input v-model="password" type="password" placeholder="••••••••" class="h-12 rounded-xl border-stone-200" />
-        </div>
-        <Button @click="handleLogin" class="w-full h-14 bg-[#FFE8A3] hover:bg-[#FFD666] text-gray-900 font-bold text-lg rounded-2xl transition-all">
-          로그인하기
-        </Button>
-        <p class="text-center text-sm text-stone-400 pt-4 cursor-pointer hover:underline">
-          아직 회원이 아니신가요? 회원가입
-        </p>
+  <div class="flex min-h-screen flex-col items-center pt-22">
+    <div class="mb-8 space-y-1 text-center">
+      <h1 class="text-2xl font-bold text-gray-900">EAT:EUM 오신 것을 환영해요!</h1>
+      <p class="text-sm text-gray-500">로그인하여 맞춤형 레시피를 만나보세요.</p>
+    </div>
+
+    <Card class="w-full max-w-[400px] rounded-3xl border-none bg-white shadow-lg">
+      <CardContent class="p-8 pt-10 pb-10">
+        <form @submit.prevent="handleLogin" class="space-y-4">
+          <Input
+            v-model="email"
+            type="email"
+            placeholder="이메일"
+            required
+            class="h-12 rounded-xl border-gray-100 bg-gray-50 px-4 focus-visible:ring-[#FFE082]"
+          />
+
+          <Input
+            v-model="password"
+            type="password"
+            placeholder="비밀번호"
+            required
+            class="h-12 rounded-xl border-gray-100 bg-gray-50 px-4 focus-visible:ring-[#FFE082]"
+          />
+
+          <Button
+            type="submit"
+            class="text-md mt-2 h-12 w-full rounded-xl bg-[#FFE082] font-bold text-gray-900 shadow-sm hover:bg-[#FCD34D]"
+          >
+            로그인
+          </Button>
+
+          <div class="mt-4 flex items-center justify-center gap-3 text-xs text-gray-400">
+            <a href="#" class="hover:text-gray-600">계정찾기</a>
+            <span class="h-3 w-[1px] bg-gray-300"></span>
+            <a href="#" class="hover:text-gray-600">비밀번호 찾기</a>
+          </div>
+        </form>
       </CardContent>
     </Card>
+
+    <div class="mt-8 text-sm text-gray-500">
+      계정이 없으신가요?
+      <button @click="goToSignUp" class="ml-1 font-bold text-gray-800 hover:underline">
+        회원가입
+      </button>
+    </div>
   </div>
 </template>

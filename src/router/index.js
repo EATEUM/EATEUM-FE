@@ -15,15 +15,60 @@
 // export default router
 
 import { createRouter, createWebHistory } from 'vue-router'
+import MainView from '@/views/MainView.vue'
+import LoginView from '@/views/LoginView.vue'
+import SignUpView from '@/views/SignUpView.vue'
+import ProfileEditView from '@/views/ProfileEditView.vue'
+import PasswordConfirmView from '@/views/PasswordConfirmView.vue'
 import MyFridgeView from '@/views/MyFridgeView.vue'
-import LoginView from '@/views/LoginView.vue' //
+import AiRecipeResultView from '@/views/AiRecipeResultView.vue'
+// 이미지 확인 결과: views 폴더 바로 아래에 있음
+import MyPageView from '@/views/MyPageView.vue' 
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    { path: '/', redirect: '/fridge' },
-    { path: '/fridge', name: 'fridge', component: MyFridgeView }, //
-    { path: '/login', name: 'login', component: LoginView } // [핵심] 이 줄이 있어야 로그인 페이지로 갑니다.
-  ]
+    {
+      path: '/',
+      name: 'main',
+      component: MainView,
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: LoginView,
+    },
+    {
+      path: '/signup',
+      name: 'signup',
+      component: SignUpView,
+    },
+    {
+      path: '/profile-edit',
+      name: 'profile-edit',
+      component: ProfileEditView,
+    },
+    {
+      path: '/password-confirm',
+      name: 'password-confirm',
+      component: PasswordConfirmView,
+    },
+    {
+      path: '/fridge',
+      name: 'fridge',
+      component: MyFridgeView,
+    },
+    {
+      path: '/ai-result',
+      name: 'ai-result',
+      component: AiRecipeResultView,
+    },
+    {
+      path: '/mypage',
+      name: 'mypage',
+      component: MyPageView,
+    },
+  ],
 })
+
 export default router
