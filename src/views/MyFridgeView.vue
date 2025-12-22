@@ -1,69 +1,175 @@
-<script setup>
-import { ref } from 'vue'
-import FridgeItem from '@/components/fridge/FridgeItem.vue'
+<!-- <script setup>
+import { ref, onMounted, computed } from 'vue';
+import axios from 'axios';
+import { useAuthStore } from '@/stores/auth'; 
+import FridgeSearchBar from '@/components/fridge/FridgeSearchBar.vue';
+import FridgeItem from '@/components/fridge/FridgeItem.vue';
+import { Button } from '@/components/ui/button'; 
 
-// 초기 데이터 15개 세팅
-const items = ref(
-  Array.from({ length: 15 }, (_, i) => ({
-    itemId: i + 1,
-    itemName: ['돼지고기', '소금', '시금치', '당근', '토마토', '연어 필렛', '계란', '우유'][i % 8],
-    itemImg: ['🥩', '🧂', '🌿', '🥕', '🍅', '🍣', '🥚', '🥛'][i % 8],
-  })),
-)
+const authStore = useAuthStore();
+const myItems = ref([]);
+const isMember = computed(() => authStore.isLoggedIn);
+
+const loadMyFridge = async () => {
+  try {
+    const res = await axios.get('http://localhost:8080/fridges');
+    if (res.data && res.data.success) {
+      const serverData = res.data.data;
+      myItems.value = serverData.items || serverData.list || serverData.content || [];
+    }
+  } catch (err) {
+    console.error("데이터 로드 실패:", err);
+  }
+};
+
+const handleAddItem = async (itemId) => {
+  if (!isMember.value) {
+    alert("로그인한 회원만 재료를 저장할 수 있습니다.");
+    return; 
+  }
+  try {
+    const res = await axios.post('http://localhost:8080/fridges', { itemId });
+    if (res.data.success) {
+      await loadMyFridge(); 
+    }
+  } catch (err) {
+    alert(err.response?.data?.message || "추가 실패");
+  }
+};
+
+const handleDeleteItem = async (itemId) => {
+  if (!confirm("정말 삭제하시겠습니까?")) return;
+  try {
+    const res = await axios.delete('http://localhost:8080/fridges', { params: { itemId } });
+    if (res.data.success) {
+      loadMyFridge();
+    }
+  } catch (err) {
+    alert("삭제 실패");
+  }
+};
+
+onMounted(loadMyFridge);
 </script>
 
 <template>
-  <main class="mx-auto flex w-[1080px] flex-col items-center pt-10 pb-10">
-    <header class="mb-6 text-center">
-      <h1 class="mb-1 text-[42px] leading-tight font-black text-neutral-800">나의 냉장고</h1>
-      <p class="text-[15px] font-medium text-neutral-500">
-        냉장고 속 재료를 추가하고 맞춤 레시피를 추천받아 보세요.
-      </p>
-    </header>
+  <div class="min-h-screen bg-[#F9F9F8]">
+    <main class="max-w-[1080px] mx-auto pt-40 pb-20 flex flex-col items-center relative">
+      <div class="absolute top-10 right-20 flex gap-4">
+        <Button v-if="!isMember" variant="outline" class="rounded-xl px-6 border-stone-200 text-stone-600 bg-white hover:bg-stone-50">
+          로그인
+        </Button>
+        <div v-else class="flex items-center gap-4">
+          <span class="text-sm font-bold text-neutral-600">환영합니다! 😊</span>
+          <Button @click="authStore.logout()" variant="ghost" class="text-red-500 font-bold">
+            로그아웃
+          </Button>
+        </div>
+      </div>
 
-    <div
-      class="mb-20 flex w-full items-center gap-6 rounded-3xl border border-stone-200 bg-white p-4 shadow-[0px_6px_16px_rgba(0,0,0,0.06)]"
-    >
-      <div
-        class="flex h-11 flex-1 items-center gap-3 rounded-xl border border-stone-100 bg-stone-50 px-5"
-      >
-        <svg class="h-5 w-5 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          />
-        </svg>
-        <input
-          type="text"
-          placeholder="어떤 재료를 추가할까요?"
-          class="flex-1 border-none bg-transparent text-[15px] font-medium text-neutral-700 outline-none"
+      <header class="text-center mb-12">
+        <div class="flex items-center justify-center gap-3 mb-4">
+          <h1 class="text-neutral-900 text-[48px] font-black tracking-tight">나의 냉장고</h1>
+          <span v-if="isMember" class="px-3 py-1 bg-green-100 text-green-600 text-sm font-bold rounded-full border border-green-200 shadow-sm">MEMBER</span>
+        </div>
+        <p class="text-stone-500 text-[18px] font-medium">
+          냉장고 속 재료를 추가하고 맞춤 레시피를 추천받아 보세요.
+        </p>
+      </header>
+
+      <FridgeSearchBar @add-item="handleAddItem" />
+
+      <div v-if="myItems.length > 0" class="grid grid-cols-5 gap-x-6 gap-y-6 w-full mt-4">
+        <FridgeItem 
+          v-for="item in myItems" 
+          :key="item.itemId"
+          v-bind="item"
+          @delete-item="handleDeleteItem"
         />
       </div>
-      <div class="flex gap-3">
-        <button
-          class="h-11 rounded-xl bg-[#FFE8A3] px-8 text-[14px] font-bold whitespace-nowrap text-gray-900 transition-colors hover:bg-[#FFD666]"
-        >
-          재료 추가
-        </button>
-        <button
-          class="flex h-11 w-11 items-center justify-center rounded-xl bg-gray-100 text-neutral-500 transition-colors hover:bg-gray-200"
-        >
-          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-            />
-          </svg>
-        </button>
-      </div>
-    </div>
 
-    <div class="grid w-full grid-cols-5 gap-x-5 gap-y-4">
-      <FridgeItem v-for="item in items" :key="item.itemId" v-bind="item" />
-    </div>
-  </main>
+      <div v-else class="mt-32 text-center">
+        <p class="text-stone-400 text-xl font-bold">냉장고가 비어있습니다.</p>
+        <p class="text-stone-300 mt-2">첫 번째 재료를 추가해 보세요!</p>
+      </div>
+    </main>
+  </div>
+</template> -->
+
+<script setup>
+import { ref, onMounted, computed } from 'vue';
+import axios from 'axios';
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/auth'; 
+import FridgeSearchBar from '@/components/fridge/FridgeSearchBar.vue';
+import FridgeItem from '@/components/fridge/FridgeItem.vue';
+import { Button } from '@/components/ui/button'; 
+
+const router = useRouter();
+const authStore = useAuthStore();
+const myItems = ref([]);
+const isMember = computed(() => authStore.isLoggedIn);
+
+const loadMyFridge = async () => {
+  try {
+    const res = await axios.get('http://localhost:8080/fridges');
+    if (res.data && res.data.success) {
+      const serverData = res.data.data;
+      // [보존] 사용자님이 성공하셨던 유연한 데이터 매핑 방식
+      myItems.value = serverData.list || serverData.items || serverData.content || [];
+    }
+  } catch (err) {
+    console.error("데이터 로드 실패:", err);
+  }
+};
+
+const handleAddItem = async (itemId) => {
+  // [수정] 20개 재료가 보이는데 추가가 안 되는 모순을 해결하기 위해
+  // 일단 알림창 가드를 잠시 풀고 서버의 응답을 직접 받습니다.
+  try {
+    const res = await axios.post('http://localhost:8080/fridges', { itemId });
+    if (res.data.success) {
+      await loadMyFridge(); 
+      alert("재료가 추가되었습니다!");
+    }
+  } catch (err) {
+    // [해결] 서버가 던지는 500 에러나 "이미 있는 재료" 메시지를 화면에 띄웁니다.
+    const errorMsg = err.response?.data?.message || "이미 냉장고에 있는 재료이거나 서버 오류가 발생했습니다.";
+    alert(errorMsg);
+  }
+};
+
+onMounted(loadMyFridge);
+</script>
+
+<template>
+  <div class="min-h-screen bg-[#F9F9F8]">
+    <main class="max-w-[1080px] mx-auto pt-40 pb-20 flex flex-col items-center relative text-left">
+      <div class="absolute top-10 right-20 flex gap-4">
+        <Button v-if="!isMember" @click="router.push('/login')" variant="outline" class="rounded-xl px-6 border-stone-200 bg-white shadow-sm">
+          로그인
+        </Button>
+        <div v-else class="flex items-center gap-4">
+          <span class="text-sm font-bold text-neutral-600">환영합니다! 😊</span>
+          <Button @click="authStore.logout()" variant="ghost" class="text-red-500 font-bold">로그아웃</Button>
+        </div>
+      </div>
+
+      <header class="text-center mb-12">
+        <div class="flex items-center justify-center gap-3 mb-4">
+          <h1 class="text-neutral-900 text-[48px] font-black tracking-tight">나의 냉장고</h1>
+          <span v-if="isMember" class="px-3 py-1 bg-green-100 text-green-600 text-sm font-bold rounded-full border border-green-200 shadow-sm">MEMBER</span>
+          <span v-else class="px-3 py-1 bg-gray-100 text-gray-400 text-sm font-bold rounded-full border border-gray-200 shadow-sm">GUEST</span>
+        </div>
+        <p class="text-stone-500 text-[18px] font-medium">냉장고 속 재료를 추가하고 맞춤 레시피를 추천받아 보세요.</p>
+      </header>
+
+      <FridgeSearchBar @add-item="handleAddItem" />
+
+      <div v-if="myItems.length > 0" class="grid grid-cols-5 gap-6 w-full mt-4">
+        <FridgeItem v-for="item in myItems" :key="item.itemId" v-bind="item" />
+      </div>
+      <div v-else class="mt-32 text-center text-stone-400 font-bold">냉장고가 비어있습니다.</div>
+    </main>
+  </div>
 </template>
