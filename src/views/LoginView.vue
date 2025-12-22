@@ -4,31 +4,37 @@ import { useRouter } from 'vue-router'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
+
 const email = ref('')
 const password = ref('')
 
 const handleLogin = async () => {
+  if (!email.value || !password.value) {
+    alert('이메일과 비밀번호를 입력해주세요.')
+    return
+  }
+
   const loginData = {
     email: email.value,
     password: password.value,
   }
 
-  const pwdRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,15}$/
-  if (!pwdRegex.test(loginData.password)) {
-    alert('비밀번호는 8~15자의 알파벳 대소문자, 숫자, 특수문자를 포함해야 합니다.')
-    return
-  }
-
   try {
-    console.log('서버로 보낼 데이터:', loginData)
-    // const response = await axios.post('/api/login', loginData)
+    await authStore.login(loginData)
 
-    alert('반가워요! 로그인에 성공했습니다.')
-    router.push('/')
+    router.replace('/')
   } catch (error) {
-    alert('로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.')
+    console.error('로그인 실패:', error)
+
+    if (error.response && error.response.status === 401) {
+      alert('아이디 또는 비밀번호가 일치하지 않습니다.')
+    } else {
+      alert(error.response?.data?.message || '로그인 중 오류가 발생했습니다.')
+    }
   }
 }
 
@@ -71,9 +77,23 @@ const goToSignUp = () => {
           </Button>
 
           <div class="mt-4 flex items-center justify-center gap-3 text-xs text-gray-400">
-            <a href="#" class="hover:text-gray-600">계정찾기</a>
+            <button
+              type="button"
+              @click="router.push('/find-account?tab=email')"
+              class="hover:text-gray-600 hover:underline"
+            >
+              이메일 찾기
+            </button>
+
             <span class="h-3 w-[1px] bg-gray-300"></span>
-            <a href="#" class="hover:text-gray-600">비밀번호 찾기</a>
+
+            <button
+              type="button"
+              @click="router.push('/find-account?tab=password')"
+              class="hover:text-gray-600 hover:underline"
+            >
+              비밀번호 찾기
+            </button>
           </div>
         </form>
       </CardContent>
