@@ -1,24 +1,26 @@
 import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
 
-export const useAuthStore = defineStore('auth', {
-  state: () => ({
-    // localStorage에서 토큰을 불러와 초기화 (새로고침 대응)
-    token: localStorage.getItem('token') || null,
-  }),
-  getters: {
-    // 토큰 존재 여부로 로그인 상태 확인
-    isLoggedIn: (state) => !!state.token,
-  },
-  actions: {
-    // 로그인 처리: 토큰 저장
-    setToken(newToken) {
-      this.token = newToken
-      localStorage.setItem('token', newToken)
-    },
-    // 로그아웃 처리: 토큰 삭제
-    logout() {
-      this.token = null
-      localStorage.removeItem('token')
-    },
-  },
+export const useAuthStore = defineStore('auth', () => {
+  const accessToken = ref(localStorage.getItem('accessToken'))
+
+  const isLoggedIn = computed(() => 
+    !!accessToken.value && 
+    accessToken.value !== 'null' && 
+    accessToken.value !== 'test'
+  )
+
+  const setToken = (newToken) => {
+    accessToken.value = newToken
+    localStorage.setItem('accessToken', newToken)
+  }
+
+  const logout = () => {
+    accessToken.value = null
+    localStorage.removeItem('accessToken')
+    location.reload()
+  }
+
+  // MyFridgeView.vue에서 사용하는 이름인 'accessToken'으로 내보냄
+  return { accessToken, isLoggedIn, setToken, logout }
 })

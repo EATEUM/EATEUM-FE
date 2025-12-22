@@ -1,11 +1,17 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import Autoplay from 'embla-carousel-autoplay'
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel'
+import RecipeCard from '@/components/recipe/RecipeCard.vue'
 import FridgeSidebar from '@/components/fridge/FridgeSidebar.vue'
 import RecipeSection from '@/components/recipe/RecipeCarousel.vue'
 
+// 상태 정의
 const aiRecommendRecipes = ref([])
 const popularRecipes = ref([])
 const speedRecipes = ref([])
+
+// --- [로직 블록 1: Mock Fetch 함수들] ---
 
 const mockFetchAiRecipes = () => {
   return Promise.resolve({
@@ -123,47 +129,7 @@ const fetchAllRecipes = async () => {
   }
 }
 
-onMounted(() => {
-  fetchAllRecipes()
-})
-</script>
-
-<template>
-  <div class="min-h-screen p-8">
-    <div class="mx-auto flex max-w-[1120px] items-start gap-8">
-      <div class="min-w-0 flex-1 space-y-8">
-        <RecipeSection
-          title="나의 재료로 만드는 AI 추천 레시피"
-          description="냉장고 속 재료들로 만들 수 있는 맛있는 요리를 추천해 드릴게요!"
-          :recipes="aiRecommendRecipes"
-          :is-ai-section="true"
-        />
-
-        <RecipeSection
-          title="지금 뜨고 있는 요리"
-          description="'오늘 뭐 먹지?' 고민될 땐 EAT:EUM 유저들이 많이 본 메뉴가 정답!"
-          :recipes="popularRecipes"
-        />
-
-        <RecipeSection
-          title="15분 컷, 스피드 요리!"
-          description="바쁜 하루, 시간은 아끼고 건강은 챙기세요."
-          :recipes="speedRecipes"
-        />
-      </div>
-
-      <aside class="w-72 flex-shrink-0">
-        <FridgeSidebar />
-      </aside>
-    </div>
-  </div>
-</template>
-<script setup>
-import { onMounted, ref } from 'vue'
-import Autoplay from 'embla-carousel-autoplay'
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel'
-import RecipeCard from '@/components/recipe/RecipeCard.vue'
-import FridgeSidebar from '@/components/fridge/FridgeSidebar.vue'
+// --- [로직 블록 2: responseData 및 Carousel 설정] ---
 
 const responseData = {
   success: true,
@@ -325,17 +291,17 @@ const responseData = {
   },
 }
 
-const aiRecommendRecipes = ref([])
-const popularRecipes = ref([])
-const speedRecipes = ref([])
-
 const plugin = Autoplay({ delay: 6000, stopOnInteraction: true })
 
 onMounted(() => {
+  // 우선 responseData의 데이터로 초기화
   const data = responseData.data
   aiRecommendRecipes.value = data.aiRecommendRecipes
   popularRecipes.value = data.popularRecipes
   speedRecipes.value = data.speedRecipes
+  
+  // 필요한 경우 Mock API 호출 실행
+  // fetchAllRecipes() 
 })
 </script>
 
@@ -343,6 +309,7 @@ onMounted(() => {
   <div class="min-h-screen p-8">
     <div class="mx-auto flex max-w-[1120px] items-start gap-8">
       <div class="min-w-0 flex-1 space-y-8">
+        
         <section class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
           <div class="mb-4">
             <h2 class="text-xl font-bold text-gray-900">나의 재료로 만드는 AI 추천 레시피</h2>
