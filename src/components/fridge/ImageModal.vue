@@ -41,7 +41,7 @@ const handleClose = () => {
 
       <div v-if="isLoading" class="py-20 text-center flex flex-col items-center justify-center shrink-0">
         <div class="mb-6 h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent"></div>
-        <p class="font-bold text-stone-600 text-lg">Gemini가 냉장고를 분석 중입니다...</p>
+        <p class="font-bold text-stone-600 text-lg">이틈이가 냉장고를 분석 중입니다...🌱</p>
         <p class="text-stone-400 mt-2">잠시만 기다려 주세요.</p>
       </div>
 
