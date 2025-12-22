@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import axios from '@/lib/axios'; // 토큰이 포함된 커스텀 axios 사용
+import axios from '@/lib/axios'; 
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth'; 
 import FridgeSearchBar from '@/components/fridge/FridgeSearchBar.vue';
@@ -10,16 +10,13 @@ const router = useRouter();
 const authStore = useAuthStore();
 const myItems = ref([]);
 
-// 로그인 여부 확인 (내부 로직용으로 유지)
 const isMember = computed(() => authStore.isLoggedIn);
 
-// 내 냉장고 데이터 로드 로직
 const loadMyFridge = async () => {
   try {
     const res = await axios.get('/fridges');
     if (res.data && res.data.success) {
       const serverData = res.data.data;
-      // 백엔드 응답 구조에 맞게 데이터를 매핑합니다.
       myItems.value = serverData.items || serverData.list || serverData.content || [];
     }
   } catch (err) {
@@ -27,7 +24,6 @@ const loadMyFridge = async () => {
   }
 };
 
-// 재료 추가 핸들러 (비회원 가드는 유지)
 const handleAddItem = async (itemId) => {
   if (!isMember.value) {
     if (confirm("재료를 저장하려면 로그인이 필요합니다. 로그인 페이지로 이동할까요?")) {
@@ -40,24 +36,33 @@ const handleAddItem = async (itemId) => {
     const res = await axios.post('/fridges', { itemId });
     if (res.data.success) {
       await loadMyFridge(); 
-      alert("냉장고에 재료가 추가되었습니다!");
+      alert(res.data.message); // 서버의 성공 메시지 ("성공")
     }
   } catch (err) {
-    const errorMsg = err.response?.data?.message || "재료 추가 중 오류가 발생했습니다.";
-    alert(errorMsg);
+    //서버 응답(err.response)이 있는지 먼저 확인하고, 그 안의 data.message를 가져옵니다.
+    const serverMessage = err.response?.data?.message;
+    console.error("서버 에러 응답:", err.response);
+    
+    // 서버 메시지가 있으면 그것을 보여주고, 없으면 기본 메시지를 보여줍니다.
+    alert(serverMessage || "재료를 추가할 수 없습니다."); 
   }
 };
 
-// 재료 삭제 핸들러
+//재료 삭제: 서버가 보내는 상세 에러 메시지 노출
 const handleDeleteItem = async (itemId) => {
   if (!confirm("정말 삭제하시겠습니까?")) return;
   try {
     const res = await axios.delete('/fridges', { params: { itemId } });
     if (res.data.success) {
-      loadMyFridge();
+      await loadMyFridge();
+      alert(res.data.message);
     }
   } catch (err) {
-    alert("삭제 실패");
+    //서버 에러 응답 객체에서 message 필드를 추출합니다.
+    const serverMessage = err.response?.data?.message;
+    console.error("서버 에러 응답:", err.response);
+    
+    alert(serverMessage || "삭제 처리 중 오류가 발생했습니다.");
   }
 };
 
@@ -65,7 +70,8 @@ onMounted(loadMyFridge);
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#F0EEE9]"> <main class="max-w-[1080px] mx-auto pt-20 pb-20 flex flex-col items-center relative text-left">
+  <div class="min-h-screen bg-[#F0EEE9]"> 
+    <main class="max-w-[1080px] mx-auto pt-20 pb-20 flex flex-col items-center relative text-left">
       
       <header class="text-center mb-12">
         <div class="flex items-center justify-center gap-3 mb-4">
