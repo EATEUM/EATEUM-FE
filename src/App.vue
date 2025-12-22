@@ -35,4 +35,7 @@ body {
 .font-pretendard {
   font-family: var(--font-pretendard);
 }
+html {
+  overflow-y: scroll; /* 스크롤바 영역을 항상 고정하여 화면 밀림 방지 */
+}
 </style>
