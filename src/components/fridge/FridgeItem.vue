@@ -25,27 +25,35 @@ const categoryStyle = computed(() => {
 
   const meat = Array.from('🍗🐷🥩🥓🌭🍖🐔')
   const seafood = Array.from('🐟🦑🦐🦀🐚🦪🐙🍥🍣🌊🐳')
-  const veggie = Array.from('🥔🍠🧅🧄🌱🥬🥒🎃 eggplant 🥕🫑 broccoli 🌿 🫚 🪷 🍄 🫛 🥗 🎋')
-  const fruit = Array.from('🍎🍐🍌🍋🍒🍍 avocado 🍓 🫐 🍇 🍈 🍊 🍏')
+  const veggie = Array.from('🥔🍠🧅🧄🌱🥬🥒🎃🍆🥕🫑🥦🌿🫚🪷🍄🫛🥗🎋') 
+  const fruit = Array.from('🍎🍐🍌🍋🍒🍍🥑🍓🫐🍇🍈🍊🍏')
   const dairyEgg = Array.from('🥚🥛🧀🧈🍦🍰')
-  const grain = Array.from('🍚🍜🍞🥖🍡🥟🥞🍤🌾 taco')
+  const grain = Array.from('🍚🍜🍞🥖🍡🥟🍤🌾🌮')
   const seasoning = Array.from('🌶️🍶🥘🧂🍬🍯🏺🍾🥣🥫🟡🔥🧊🫒⚫🟢🤎⬜🖤')
 
+  // 1. 육류
   if (meat.includes(img) || name.includes('고기') || name.includes('치킨'))
     return { backgroundColor: '#FFD6D6' }
+  // 2. 해산물
   if (seafood.includes(img) || name.includes('어') || name.includes('회'))
     return { backgroundColor: '#CDE4FF' }
-  if (veggie.includes(img) || name.includes('파')) return { backgroundColor: '#D1FADF' }
+  // 3. 채소 (가지, 파 등 이름 체크 추가)
+  if (veggie.includes(img) || name.includes('파') || name.includes('가지') || name.includes('버섯')) 
+    return { backgroundColor: '#D1FADF' } // 연초록
+  // 4. 과일
   if (fruit.includes(img) || name.includes('사과') || name.includes('토마토'))
     return { backgroundColor: '#FFD9B3' }
-  if (dairyEgg.includes(img) || name.includes('계란') || name.includes('우유'))
+  // 5. 유제품/알류
+  if (dairyEgg.includes(img) || name.includes('계란') || name.includes('달걀') || name.includes('우유'))
     return { backgroundColor: '#FEF08A' }
+  // 6. 곡류/면류 (라면 등)
   if (grain.includes(img) || name.includes('면') || name.includes('빵'))
-    return { backgroundColor: '#E5E7EB' }
-  if (seasoning.includes(img) || name.includes('고추') || name.includes('소스'))
+    return { backgroundColor: '#E2E8F0' } // 라면을 위한 약간 다른 톤의 회색
+  // 7. 양념/가공식품 (스팸, 김치 포함)
+  if (seasoning.includes(img) || name.includes('소스') || name.includes('스팸') || name.includes('김치'))
     return { backgroundColor: '#FBCFE8' }
 
-  return { backgroundColor: '#E5E7EB' }
+  return { backgroundColor: '#F3F4F6' } // 인식 실패 시 기본 배경색
 })
 </script>
 
