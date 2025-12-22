@@ -1,136 +1,16 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch, computed } from 'vue'
+import axios from '@/lib/axios' 
+import { useAuthStore } from '@/stores/auth'
 import Autoplay from 'embla-carousel-autoplay'
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel'
 import RecipeCard from '@/components/recipe/RecipeCard.vue'
 import FridgeSidebar from '@/components/fridge/FridgeSidebar.vue'
-import RecipeSection from '@/components/recipe/RecipeCarousel.vue'
 
-// 상태 정의
-const aiRecommendRecipes = ref([])
-const popularRecipes = ref([])
-const speedRecipes = ref([])
+const authStore = useAuthStore()
+const isLoggedIn = computed(() => authStore.isLoggedIn)
 
-// --- [로직 블록 1: Mock Fetch 함수들] ---
-
-const mockFetchAiRecipes = () => {
-  return Promise.resolve({
-    data: [
-      {
-        recipeVideoId: 1,
-        videoTitle: 'AI 추천: 토마토 달걀 볶음',
-        videoUrl: 'https://www.youtube.com/watch?v=t4Es8mwdYlE',
-        thumbnailUrl: 'https://img.youtube.com/vi/t4Es8mwdYlE/maxresdefault.jpg',
-        duration: '10:44',
-        viewCount: 2200,
-      },
-      {
-        recipeVideoId: 2,
-        videoTitle: 'AI 추천: 양배추 덮밥',
-        videoUrl: 'https://www.youtube.com/watch?v=t4Es8mwdYlE',
-        thumbnailUrl: 'https://img.youtube.com/vi/m-5V9tdfyXE/maxresdefault.jpg',
-        duration: '12:56',
-        viewCount: 14000,
-      },
-      {
-        recipeVideoId: 3,
-        videoTitle: 'AI 추천: 두부 조림',
-        videoUrl: 'https://www.youtube.com/watch?v=t4Es8mwdYlE',
-        thumbnailUrl: 'https://img.youtube.com/vi/fbbamRUPbrI/maxresdefault.jpg',
-        duration: '20:00',
-        viewCount: 500,
-      },
-    ],
-  })
-}
-
-const mockFetchPopularRecipes = () => {
-  return Promise.resolve({
-    data: [
-      {
-        recipeVideoId: 101,
-        videoTitle: '인기: 떡볶이 황금레시피',
-        videoUrl: 'https://www.youtube.com/watch?v=t4Es8mwdYlE',
-        thumbnailUrl: 'https://img.youtube.com/vi/t4Es8mwdYLE/maxresdefault.jpg',
-        duration: '12:56',
-        viewCount: 99999,
-      },
-      {
-        recipeVideoId: 102,
-        videoTitle: '인기: 라면 맛있게 끓이기',
-        videoUrl: 'https://www.youtube.com/watch?v=t4Es8mwdYlE',
-        thumbnailUrl: 'https://img.youtube.com/vi/cUQzxhMYdGs/maxresdefault.jpg',
-        duration: '04:20',
-        viewCount: 56000,
-      },
-      {
-        recipeVideoId: 103,
-        videoTitle: '인기: 김치찌개',
-        videoUrl: 'https://www.youtube.com/watch?v=t4Es8mwdYlE',
-        thumbnailUrl: 'https://img.youtube.com/vi/sOFdNQtNkAc/maxresdefault.jpg',
-        duration: '10:44',
-        viewCount: 22000,
-      },
-      // ...
-    ],
-  })
-}
-
-const mockFetchSpeedRecipes = () => {
-  return Promise.resolve({
-    data: [
-      {
-        recipeVideoId: 201,
-        videoTitle: '스피드: 3분 카레',
-        videoUrl: 'https://www.youtube.com/watch?v=t4Es8mwdYlE',
-        thumbnailUrl: 'https://img.youtube.com/vi/-2h6aPSzpT0/maxresdefault.jpg',
-        duration: '03:00',
-        viewCount: 200,
-      },
-      {
-        recipeVideoId: 202,
-        videoTitle: '스피드: 5분 계란밥',
-        videoUrl: 'https://www.youtube.com/watch?v=t4Es8mwdYlE',
-        thumbnailUrl: 'https://img.youtube.com/vi/k5f2BrbAnoA/maxresdefault.jpg',
-        duration: '05:00',
-        viewCount: 56000,
-      },
-      {
-        recipeVideoId: 203,
-        videoTitle: '스피드: 1분 계란찜',
-        videoUrl: 'https://www.youtube.com/watch?v=t4Es8mwdYlE',
-        thumbnailUrl: 'https://img.youtube.com/vi/t049j0rSSdE/maxresdefault.jpg',
-        duration: '01:15',
-        viewCount: 3400,
-      },
-    ],
-  })
-}
-
-const fetchAllRecipes = async () => {
-  try {
-    // const [aiRes, popRes, speedRes] = await Promise.all([
-    //   axios.get('/api/recipes/ai-recommend'),
-    //   axios.get('/api/recipes/popular'),
-    //   axios.get('/api/recipes/speed')
-    // ])
-
-    const [aiRes, popRes, speedRes] = await Promise.all([
-      mockFetchAiRecipes(),
-      mockFetchPopularRecipes(),
-      mockFetchSpeedRecipes(),
-    ])
-
-    aiRecommendRecipes.value = aiRes.data
-    popularRecipes.value = popRes.data
-    speedRecipes.value = speedRes.data
-  } catch (error) {
-    console.error('레시피 데이터를 불러오는 중 오류 발생:', error)
-  }
-}
-
-// --- [로직 블록 2: responseData 및 Carousel 설정] ---
-
+// 1. 데이터 소스 (사용자님의 기존 Mock 데이터 및 UI 관련 설정 절대 수정 금지)
 const responseData = {
   success: true,
   message: '성공',
@@ -291,17 +171,52 @@ const responseData = {
   },
 }
 
+// 2. 상태 관리
+const aiRecommendRecipes = ref([])
+const popularRecipes = ref([])
+const speedRecipes = ref([])
+const myItems = ref([]) 
+
+/* 백엔드에서 재료 데이터를 가져옴 */
+const loadSidebarFridge = async () => {
+  try {
+    const res = await axios.get('/fridges', { params: { page: 1, size: 50 } });
+    if (res.data && res.data.success) {
+      myItems.value = res.data.data.items || res.data.data.content || [];
+    }
+  } catch (err) {
+    console.error("메인 페이지 사이드바 재료 로드 실패:", err);
+  }
+};
+
+/* 재료 삭제 요청 처리 함수 */
+const handleDeleteItem = async (itemId) => {
+  try {
+    const res = await axios.delete(`/fridges/${itemId}`);
+    if (res.data && res.data.success) {
+      await loadSidebarFridge(); // 삭제 성공 시 즉시 목록 갱신
+    }
+  } catch (err) {
+    console.error("삭제 실패 로그:", err);
+    alert("삭제 요청을 처리할 수 없습니다. 백엔드 컨트롤러 매핑을 확인해 주세요.");
+  }
+};
+
+/* 로그인 상태가 변할 때마다 재료 동기화 */
+watch(isLoggedIn, () => {
+  loadSidebarFridge();
+}, { immediate: true });
+
 const plugin = Autoplay({ delay: 6000, stopOnInteraction: true })
 
+// 3. 라이프사이클
 onMounted(() => {
-  // 우선 responseData의 데이터로 초기화
   const data = responseData.data
   aiRecommendRecipes.value = data.aiRecommendRecipes
   popularRecipes.value = data.popularRecipes
   speedRecipes.value = data.speedRecipes
-  
-  // 필요한 경우 Mock API 호출 실행
-  // fetchAllRecipes() 
+
+  loadSidebarFridge();
 })
 </script>
 
@@ -313,115 +228,54 @@ onMounted(() => {
         <section class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
           <div class="mb-4">
             <h2 class="text-xl font-bold text-gray-900">나의 재료로 만드는 AI 추천 레시피</h2>
-            <p class="mt-1 text-sm text-gray-500">
-              냉장고 속 재료들로 만들 수 있는 맛있는 요리를 추천해 드릴게요!
-            </p>
+            <p class="mt-1 text-sm text-gray-500">냉장고 속 재료들로 만들 수 있는 맛있는 요리를 추천해 드릴게요!</p>
           </div>
-
-          <Carousel
-            :opts="{
-              align: 'start',
-              loop: true,
-              slidesToScroll: 3,
-              duration: 30,
-            }"
-            :plugins="[plugin]"
-            class="group relative w-full"
-          >
+          <Carousel :opts="{ align: 'start', loop: true, slidesToScroll: 3, duration: 30 }" :plugins="[plugin]" class="group relative w-full">
             <CarouselContent class="-ml-4">
-              <CarouselItem
-                v-for="recipe in aiRecommendRecipes"
-                :key="recipe.recipeVideoId"
-                class="basis-1/3 pl-4"
-              >
+              <CarouselItem v-for="recipe in aiRecommendRecipes" :key="recipe.recipeVideoId" class="basis-1/3 pl-4">
                 <RecipeCard :isAiRecommended="true" v-bind="recipe" />
               </CarouselItem>
             </CarouselContent>
-
-            <CarouselPrevious
-              class="absolute top-1/2 -left-4 z-20 h-8 w-8 -translate-y-1/2 border-gray-100 bg-white/90 text-gray-800 opacity-0 shadow-md transition-opacity group-hover:opacity-100 hover:bg-white"
-            />
-            <CarouselNext
-              class="absolute top-1/2 -right-4 z-20 h-8 w-8 -translate-y-1/2 border-gray-100 bg-white/90 text-gray-800 opacity-0 shadow-md transition-opacity group-hover:opacity-100 hover:bg-white"
-            />
+            <CarouselPrevious class="absolute top-1/2 -left-4 z-20 h-8 w-8 -translate-y-1/2 border-gray-100 bg-white/90 text-gray-800 opacity-0 shadow-md transition-opacity group-hover:opacity-100 hover:bg-white" />
+            <CarouselNext class="absolute top-1/2 -right-4 z-20 h-8 w-8 -translate-y-1/2 border-gray-100 bg-white/90 text-gray-800 opacity-0 shadow-md transition-opacity group-hover:opacity-100 hover:bg-white" />
           </Carousel>
         </section>
 
         <section class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
           <div class="mb-4">
             <h2 class="text-xl font-bold text-gray-900">지금 뜨고 있는 요리</h2>
-            <p class="mt-1 text-sm text-gray-500">
-              "오늘 뭐 먹지?" 고민될 땐 EAT:EUM 유저들이 많이 본 메뉴가 정답!
-            </p>
+            <p class="mt-1 text-sm text-gray-500">"오늘 뭐 먹지?" 고민될 땐 EAT:EUM 유저들이 많이 본 메뉴가 정답!</p>
           </div>
-          <Carousel
-            :opts="{
-              align: 'start',
-              loop: true,
-              slidesToScroll: 3,
-              duration: 30,
-            }"
-            :plugins="[plugin]"
-            class="group relative w-full"
-          >
+          <Carousel :opts="{ align: 'start', loop: true, slidesToScroll: 3, duration: 30 }" :plugins="[plugin]" class="group relative w-full">
             <CarouselContent class="-ml-4">
-              <CarouselItem
-                v-for="recipe in popularRecipes"
-                :key="recipe.recipeVideoId"
-                class="basis-1/3 pl-4"
-              >
+              <CarouselItem v-for="recipe in popularRecipes" :key="recipe.recipeVideoId" class="basis-1/3 pl-4">
                 <RecipeCard :isAiRecommended="false" v-bind="recipe" />
               </CarouselItem>
             </CarouselContent>
-
-            <CarouselPrevious
-              class="absolute top-1/2 -left-4 z-20 h-8 w-8 -translate-y-1/2 border-gray-100 bg-white/90 text-gray-800 opacity-0 shadow-md transition-opacity group-hover:opacity-100 hover:bg-white"
-            />
-            <CarouselNext
-              class="absolute top-1/2 -right-4 z-20 h-8 w-8 -translate-y-1/2 border-gray-100 bg-white/90 text-gray-800 opacity-0 shadow-md transition-opacity group-hover:opacity-100 hover:bg-white"
-            />
+            <CarouselPrevious class="absolute top-1/2 -left-4 z-20 h-8 w-8 -translate-y-1/2 border-gray-100 bg-white/90 text-gray-800 opacity-0 shadow-md transition-opacity group-hover:opacity-100 hover:bg-white" />
+            <CarouselNext class="absolute top-1/2 -right-4 z-20 h-8 w-8 -translate-y-1/2 border-gray-100 bg-white/90 text-gray-800 opacity-0 shadow-md transition-opacity group-hover:opacity-100 hover:bg-white" />
           </Carousel>
         </section>
 
         <section class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
           <div class="mb-4">
             <h2 class="text-xl font-bold text-gray-900">15분 컷, 스피드 요리!</h2>
-            <p class="mt-1 text-sm text-gray-500">
-              바쁜 하루, 시간은 아끼고 건강은 챙기세요. 짧은 시간에도 완벽한 한 끼가 완성됩니다.
-            </p>
+            <p class="mt-1 text-sm text-gray-500">바쁜 하루, 시간은 아끼고 건강은 챙기세요. 짧은 시간에도 완벽한 한 끼가 완성됩니다.</p>
           </div>
-          <Carousel
-            :opts="{
-              align: 'start',
-              loop: true,
-              slidesToScroll: 3,
-              duration: 30,
-            }"
-            :plugins="[plugin]"
-            class="group relative w-full"
-          >
+          <Carousel :opts="{ align: 'start', loop: true, slidesToScroll: 3, duration: 30 }" :plugins="[plugin]" class="group relative w-full">
             <CarouselContent class="-ml-4">
-              <CarouselItem
-                v-for="recipe in speedRecipes"
-                :key="recipe.recipeVideoId"
-                class="basis-1/3 pl-4"
-              >
+              <CarouselItem v-for="recipe in speedRecipes" :key="recipe.recipeVideoId" class="basis-1/3 pl-4">
                 <RecipeCard :isAiRecommended="false" v-bind="recipe" />
               </CarouselItem>
             </CarouselContent>
-
-            <CarouselPrevious
-              class="absolute top-1/2 -left-4 z-20 h-8 w-8 -translate-y-1/2 border-gray-100 bg-white/90 text-gray-800 opacity-0 shadow-md transition-opacity group-hover:opacity-100 hover:bg-white"
-            />
-            <CarouselNext
-              class="absolute top-1/2 -right-4 z-20 h-8 w-8 -translate-y-1/2 border-gray-100 bg-white/90 text-gray-800 opacity-0 shadow-md transition-opacity group-hover:opacity-100 hover:bg-white"
-            />
+            <CarouselPrevious class="absolute top-1/2 -left-4 z-20 h-8 w-8 -translate-y-1/2 border-gray-100 bg-white/90 text-gray-800 opacity-0 shadow-md transition-opacity group-hover:opacity-100 hover:bg-white" />
+            <CarouselNext class="absolute top-1/2 -right-4 z-20 h-8 w-8 -translate-y-1/2 border-gray-100 bg-white/90 text-gray-800 opacity-0 shadow-md transition-opacity group-hover:opacity-100 hover:bg-white" />
           </Carousel>
         </section>
       </div>
 
       <aside class="w-72 flex-shrink-0">
-        <FridgeSidebar />
+        <FridgeSidebar :items="myItems" @delete-item="handleDeleteItem" />
       </aside>
     </div>
   </div>
