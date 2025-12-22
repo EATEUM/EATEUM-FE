@@ -1,69 +1,172 @@
 <script setup>
-import { ref } from 'vue'
-import FridgeItem from '@/components/fridge/FridgeItem.vue'
+import { ref, onMounted, computed, onUnmounted, nextTick } from 'vue';
+import axios from '@/lib/axios'; 
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/auth'; 
+import FridgeSearchBar from '@/components/fridge/FridgeSearchBar.vue';
+import FridgeItem from '@/components/fridge/FridgeItem.vue';
+import ImageRecognitionModal from '@/components/fridge/ImageModal.vue';
 
-// 초기 데이터 15개 세팅
-const items = ref(
-  Array.from({ length: 15 }, (_, i) => ({
-    itemId: i + 1,
-    itemName: ['돼지고기', '소금', '시금치', '당근', '토마토', '연어 필렛', '계란', '우유'][i % 8],
-    itemImg: ['🥩', '🧂', '🌿', '🥕', '🍅', '🍣', '🥚', '🥛'][i % 8],
-  })),
-)
+const router = useRouter();
+const authStore = useAuthStore();
+
+const myItems = ref([]);
+const currentPage = ref(1);
+const isFetching = ref(false);
+const hasMore = ref(true);
+const totalItems = ref(0);
+
+const isModalOpen = ref(false);
+const recognizedItems = ref([]);
+const isAnalyzing = ref(false);
+
+const isMember = computed(() => authStore.isLoggedIn);
+
+// 데이터 로드 로직 (안정화 버전)
+const loadMyFridge = async (page = 1) => {
+  if (isFetching.value) return;
+  if (!hasMore.value && page !== 1) return;
+  
+  isFetching.value = true;
+  try {
+    const res = await axios.get('/fridges', { params: { page, size: 20 } });
+    if (res.data && res.data.success) {
+      const serverData = res.data.data;
+      const fetchedItems = serverData.items || [];
+      
+      if (page === 1) {
+        myItems.value = fetchedItems;
+      } else {
+        myItems.value = [...myItems.value, ...fetchedItems];
+      }
+      
+      totalItems.value = serverData.totalItems || 0; 
+      hasMore.value = myItems.value.length < totalItems.value;
+      currentPage.value = page;
+    }
+  } catch (err) {
+    console.error("데이터 로드 실패:", err);
+  } finally {
+    isFetching.value = false;
+  }
+};
+
+const observerTarget = ref(null);
+let observer = null;
+
+// 무한 스크롤 초기화 (새로고침 시 안정성 확보)
+const initObserver = () => {
+  if (observer) observer.disconnect();
+  
+  observer = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && hasMore.value && !isFetching.value) {
+      loadMyFridge(currentPage.value + 1);
+    }
+  }, { 
+    rootMargin: '300px', // 사용자가 도착하기 훨씬 전에 미리 불러옵니다.
+    threshold: 0 
+  });
+
+  if (observerTarget.value) observer.observe(observerTarget.value);
+};
+
+onMounted(async () => {
+  await loadMyFridge(1);
+  // DOM 업데이트가 완료된 후 관찰을 시작하여 새로고침 이슈를 해결합니다.
+  await nextTick();
+  initObserver();
+});
+
+onUnmounted(() => { if (observer) observer.disconnect(); });
+
+// 목록 새로고침 유틸리티
+const refreshList = async () => {
+  hasMore.value = true;
+  await loadMyFridge(1);
+  await nextTick();
+  initObserver();
+};
+
+const handleAddItem = async (itemId) => {
+  if (!isMember.value) { if (confirm("로그인이 필요합니다.")) router.push('/login'); return; }
+  try {
+    const res = await axios.post('/fridges', { itemId });
+    if (res.data.success) await refreshList();
+  } catch (err) { alert(err.response?.data?.message || "추가 실패"); }
+};
+
+const handleDeleteItem = async (itemId) => {
+  if (!confirm("삭제하시겠습니까?")) return;
+  try {
+    const res = await axios.delete('/fridges', { params: { itemId } });
+    if (res.data.success) await refreshList();
+  } catch (err) { alert(err.response?.data?.message || "삭제 실패"); }
+};
+
+const handleImageRecognition = async (file) => {
+  isModalOpen.value = true; isAnalyzing.value = true;
+  const formData = new FormData();
+  formData.append('file', file);
+  try {
+    const res = await axios.post('/fridges/image-recognition', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+    if (res.data.success) recognizedItems.value = res.data.data;
+  } catch (err) { isModalOpen.value = false; }
+  finally { isAnalyzing.value = false; }
+};
+
+const handleAddMultipleItems = async (itemIds) => {
+  try {
+    const res = await axios.post('/fridges/add-items', itemIds);
+    if (res.data.success) { isModalOpen.value = false; await refreshList(); }
+  } catch (err) { alert("추가 실패"); }
+};
 </script>
 
 <template>
-  <main class="mx-auto flex w-[1080px] flex-col items-center pt-10 pb-10">
-    <header class="mb-6 text-center">
-      <h1 class="mb-1 text-[42px] leading-tight font-black text-neutral-800">나의 냉장고</h1>
-      <p class="text-[15px] font-medium text-neutral-500">
-        냉장고 속 재료를 추가하고 맞춤 레시피를 추천받아 보세요.
-      </p>
-    </header>
+  <div class="min-h-screen bg-[#F0EEE9]"> 
+    <main class="max-w-[1080px] mx-auto pt-24 sm:pt-40 pb-20 px-4 flex flex-col items-center">
+      
+      <header class="text-center mb-14 w-full">
+        <div class="flex items-center justify-center gap-3 mb-4">
+          <h1 class="text-neutral-900 text-3xl sm:text-[48px] font-black tracking-tight leading-tight">나의 냉장고</h1>
+          <span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-600 text-sm font-bold shadow-sm self-center mt-2">
+            총 {{ totalItems }}개
+          </span>
+        </div>
+        <p class="text-stone-500 text-sm sm:text-lg font-medium">냉장고 속 재료를 추가하고 맞춤 레시피를 추천받아 보세요.</p>
+      </header>
 
-    <div
-      class="mb-20 flex w-full items-center gap-6 rounded-3xl border border-stone-200 bg-white p-4 shadow-[0px_6px_16px_rgba(0,0,0,0.06)]"
-    >
-      <div
-        class="flex h-11 flex-1 items-center gap-3 rounded-xl border border-stone-100 bg-stone-50 px-5"
-      >
-        <svg class="h-5 w-5 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          />
-        </svg>
-        <input
-          type="text"
-          placeholder="어떤 재료를 추가할까요?"
-          class="flex-1 border-none bg-transparent text-[15px] font-medium text-neutral-700 outline-none"
+      <div class="w-full mb-16">
+        <FridgeSearchBar @add-item="handleAddItem" @image-selected="handleImageRecognition" />
+      </div>
+
+      <div v-if="myItems.length > 0" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 w-full">
+        <FridgeItem 
+          v-for="item in myItems" 
+          :key="item.itemId" 
+          v-bind="item" 
+          @delete-item="handleDeleteItem"
         />
       </div>
-      <div class="flex gap-3">
-        <button
-          class="h-11 rounded-xl bg-[#FFE8A3] px-8 text-[14px] font-bold whitespace-nowrap text-gray-900 transition-colors hover:bg-[#FFD666]"
-        >
-          재료 추가
-        </button>
-        <button
-          class="flex h-11 w-11 items-center justify-center rounded-xl bg-gray-100 text-neutral-500 transition-colors hover:bg-gray-200"
-        >
-          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-            />
-          </svg>
-        </button>
+      
+      <div v-else-if="!isFetching" class="mt-20 text-center text-stone-400 font-bold text-xl">
+        냉장고가 비어있습니다.
       </div>
-    </div>
+      
+      <div ref="observerTarget" class="w-full h-40 flex flex-col items-center justify-center mt-10">
+        <div v-if="isFetching" class="flex flex-col items-center gap-2">
+          <div class="h-8 w-8 animate-spin rounded-full border-4 border-amber-500 border-t-transparent"></div>
+          <p class="text-amber-600 font-bold text-sm">재료 더 가져오는 중...</p>
+        </div>
+        <p v-else-if="!hasMore && myItems.length > 0" class="text-stone-400 font-bold text-base">
+          냉장고의 모든 재료가 조회되었습니다.🍽️
+        </p>
+      </div>
+    </main>
 
-    <div class="grid w-full grid-cols-5 gap-x-5 gap-y-4">
-      <FridgeItem v-for="item in items" :key="item.itemId" v-bind="item" />
-    </div>
-  </main>
+    <ImageRecognitionModal 
+      :is-open="isModalOpen" :items="recognizedItems" :is-loading="isAnalyzing"
+      @close="isModalOpen = false" @confirm="handleAddMultipleItems"
+    />
+  </div>
 </template>

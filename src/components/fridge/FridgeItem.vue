@@ -25,28 +25,36 @@ const categoryStyle = computed(() => {
 
   const meat = Array.from('🍗🐷🥩🥓🌭🍖🐔')
   const seafood = Array.from('🐟🦑🦐🦀🐚🦪🐙🍥🍣🌊🐳')
-  const veggie = Array.from('🥔🍠🧅🧄🌱🥬🥒🎃 eggplant 🥕🫑 broccoli 🌿 🫚 🪷 🍄 🫛 🥗 🎋')
-  const fruit = Array.from('🍎🍐🍌🍋🍒🍍 avocado 🍓 🫐 🍇 🍈 🍊 🍏')
+  const veggie = Array.from('🥔🍠🧅🧄🌱🥬🥒🎃🍆🥕🫑🥦🌿🫚🪷🍄🫛🥗🎋') 
+  const fruit = Array.from('🍎🍐🍌🍋🍒🍍🥑🍓🫐🍇🍈🍊🍏')
   const dairyEgg = Array.from('🥚🥛🧀🧈🍦🍰')
-  const grain = Array.from('🍚🍜🍞🥖🍡🥟🥞🍤🌾 taco')
+  const grain = Array.from('🍚🍜🍞🥖🍡🥟🍤🌾🌮')
   const seasoning = Array.from('🌶️🍶🥘🧂🍬🍯🏺🍾🥣🥫🟡🔥🧊🫒⚫🟢🤎⬜🖤')
 
   if (meat.includes(img) || name.includes('고기') || name.includes('치킨'))
     return { backgroundColor: '#FFD6D6' }
   if (seafood.includes(img) || name.includes('어') || name.includes('회'))
     return { backgroundColor: '#CDE4FF' }
-  if (veggie.includes(img) || name.includes('파')) return { backgroundColor: '#D1FADF' }
+  if (veggie.includes(img) || name.includes('파') || name.includes('가지') || name.includes('버섯')) 
+    return { backgroundColor: '#D1FADF' } 
   if (fruit.includes(img) || name.includes('사과') || name.includes('토마토'))
     return { backgroundColor: '#FFD9B3' }
-  if (dairyEgg.includes(img) || name.includes('계란') || name.includes('우유'))
+  if (dairyEgg.includes(img) || name.includes('계란') || name.includes('달걀') || name.includes('우유'))
     return { backgroundColor: '#FEF08A' }
   if (grain.includes(img) || name.includes('면') || name.includes('빵'))
-    return { backgroundColor: '#E5E7EB' }
-  if (seasoning.includes(img) || name.includes('고추') || name.includes('소스'))
+    return { backgroundColor: '#E2E8F0' } 
+  if (seasoning.includes(img) || name.includes('소스') || name.includes('스팸') || name.includes('김치'))
     return { backgroundColor: '#FBCFE8' }
 
-  return { backgroundColor: '#E5E7EB' }
+  return { backgroundColor: '#F3F4F6' } 
 })
+
+const emit = defineEmits(['delete-item']); 
+
+// 삭제 버튼 클릭 시 실행되는 함수
+const onDelete = () => {
+  emit('delete-item', props.itemId); 
+};
 </script>
 
 <template>
@@ -69,6 +77,7 @@ const categoryStyle = computed(() => {
     <span class="pt-2 text-[15px] font-bold tracking-tight text-neutral-800">{{ itemName }}</span>
 
     <button
+      @click.stop="onDelete"
       class="absolute top-2 right-2 rounded-full bg-stone-100/80 p-1 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-stone-200"
     >
       <svg

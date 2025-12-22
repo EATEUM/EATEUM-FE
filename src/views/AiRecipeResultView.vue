@@ -157,9 +157,8 @@ const setHoveredRecipe = (id) => {
             나의 재료로 만들 수 있는 레시피가 업데이트 되었습니다.
           </p>
         </div>
-
         <!--  여기 css 건들이지 마세요! 비율 다 맞춰놨습니다-->
-        <div
+        <div 
           class="grid justify-start gap-3 rounded-2xl bg-white p-6"
           style="
             display: grid;
@@ -183,7 +182,6 @@ const setHoveredRecipe = (id) => {
         </div>
       </section>
 
-      <!--  우측 재료들 컴포넌트    -->
       <section class="w-[340px] shrink-0 pt-[84px]">
         <Card
           class="sticky top-10 flex h-[calc(100vh-120px)] flex-col rounded-2xl border-none bg-white p-6 shadow-[0_10px_40px_rgba(0,0,0,0.04)]"
