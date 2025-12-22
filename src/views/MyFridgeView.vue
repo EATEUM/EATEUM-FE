@@ -61,7 +61,7 @@ const loadMyFridge = async (page = 1) => {
 const observerTarget = ref(null);
 let observer = null;
 
-// 무한 스크롤 감지기 초기화 (안정성 강화)
+// 무한 스크롤 감지기 초기화
 const initObserver = () => {
   if (observer) observer.disconnect();
   
@@ -133,8 +133,8 @@ const handleAddMultipleItems = async (itemIds) => {
       
       <header class="text-center mb-14 w-full">
         <div class="flex items-center justify-center gap-3 mb-4">
-          <h1 class="text-neutral-900 text-3xl sm:text-[48px] font-black tracking-tight leading-tight">나의 냉장고</h1>
-          <span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-600 text-xs sm:text-sm font-bold shadow-sm self-center mt-2">
+          <h1 class="text-neutral-900 text-3xl sm:text-[50px] font-black tracking-tight leading-tight">나의 냉장고</h1>
+          <span class="px-2.5 py-0.5 rounded-full bg-[#FFE8A3] text-[#212121] text-xs sm:text-sm font-semibold shadow-sm self-center mt-2">
             총 {{ totalItems }}개
           </span>
         </div>

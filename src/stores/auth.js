@@ -12,18 +12,16 @@ export const useAuthStore = defineStore(
 
     const initializeAuth = async () => {
       if (!accessToken.value) return
-
       api.defaults.headers.common['Authorization'] = `Bearer ${accessToken.value}`
-
       try {
         await getMyInfo()
-        console.log('사용자 인증 정보 초기화 완료')
       } catch (error) {
-        console.error('인증 초기화 실패:', error)
         await logout()
       }
     }
 
+    // [수정] 다른 파일들(axios.js, MainView 등)에서 사용하는 이름으로 통일
+    const isLoggedIn = computed(() => !!accessToken.value)
     const isAuthenticated = computed(() => !!accessToken.value)
 
     const getMyInfo = async () => {
@@ -34,7 +32,6 @@ export const useAuthStore = defineStore(
           return response.data.data
         }
       } catch (error) {
-        console.error('정보 조회 실패', error)
         throw error
       }
     }
@@ -43,10 +40,8 @@ export const useAuthStore = defineStore(
       try {
         const response = await userApi.reissue()
         const { accessToken: newAccessToken } = response.data.data
-
         accessToken.value = newAccessToken
         api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`
-
         return newAccessToken
       } catch (error) {
         await logout()
@@ -58,10 +53,8 @@ export const useAuthStore = defineStore(
       try {
         const response = await userApi.login(loginData)
         const { accessToken: newAccessToken } = response.data.data
-
         accessToken.value = newAccessToken
         api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`
-
         await getMyInfo()
         return true
       } catch (error) {
@@ -73,12 +66,13 @@ export const useAuthStore = defineStore(
       try {
         await userApi.logout()
       } catch (e) {
-        console.log('로그아웃 서버 통신 에러 무시', e)
       } finally {
         accessToken.value = null
         user.value = null
         isPasswordVerified.value = false
         delete api.defaults.headers.common['Authorization']
+
+        window.location.href = '/'
       }
     }
 
@@ -118,6 +112,7 @@ export const useAuthStore = defineStore(
       setPasswordVerified,
       initializeAuth,
       isAuthenticated,
+      isLoggedIn, // [추가] 반환값에 추가
       login,
       logout,
       withdraw,

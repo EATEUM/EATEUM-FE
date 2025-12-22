@@ -78,7 +78,7 @@ const handleFileChange = (e) => {
         @click="triggerFileInput"
         type="button"
         title="AI 이미지로 재료 추가"
-        class="h-[60px] w-[60px] flex items-center justify-center rounded-2xl bg-amber-400 shadow-[0px_4px_12px_rgba(251,191,36,0.4)] hover:bg-amber-500 hover:scale-105 active:scale-95 transition-all duration-200 group"
+        class="h-[60px] w-[60px] flex items-center justify-center rounded-2xl bg-[#F1C232] shadow-[0px_4px_12px_rgba(251,191,36,0.4)] hover:bg-amber-500 hover:scale-105 active:scale-95 transition-all duration-200 group"
       >
         <Camera class="w-7 h-7 text-white group-hover:rotate-12 transition-transform" />
       </button>
