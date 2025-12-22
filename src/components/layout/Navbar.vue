@@ -28,7 +28,7 @@ const handleAuthAction = async () => {
 const navLinks = [
   { name: '홈', path: '/' },
   { name: '나의 냉장고', path: '/fridge' },
-  { name: '마이페이지', path: '/' }, // 여기 수정해야 함
+  { name: '마이페이지', path: '/mypage' },
 ]
 </script>
 
