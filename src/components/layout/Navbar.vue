@@ -1,23 +1,34 @@
 <script setup>
-import { ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { computed } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import LogoSymbol from '@/assets/logo/logo-symbol.png'
 import LogoEateum from '@/assets/logo/logo-eateum.png'
-import { Search, Bell } from 'lucide-vue-next'
+import { Bell, Search } from 'lucide-vue-next'
 import UserProfile from '@/components/common/UserProfile.vue'
+import { useAuthStore } from '@/stores/auth'
 
-const isLoggedIn = ref(false)
-const userProfileUrl = ref(null)
+const router = useRouter()
+const authStore = useAuthStore()
 
-const toggleAuth = () => {
-  isLoggedIn.value = !isLoggedIn.value
+const isLoggedIn = computed(() => !!authStore.user)
+const userProfileUrl = computed(() => authStore.user?.profileImage || '')
+
+const handleAuthAction = async () => {
+  if (isLoggedIn.value) {
+    if (confirm('로그아웃 하시겠습니까?')) {
+      await authStore.logout()
+      router.push('/') // 메인으로 이동
+    }
+  } else {
+    router.push('/login')
+  }
 }
 
 const navLinks = [
   { name: '홈', path: '/' },
-  { name: '나의 냉장고', path: '/' },
-  { name: '마이페이지', path: '/' },
+  { name: '나의 냉장고', path: '/fridge' },
+  { name: '마이페이지', path: '/' }, // 여기 수정해야 함
 ]
 </script>
 
@@ -55,12 +66,16 @@ const navLinks = [
             <Bell :size="20" />
           </button>
 
-          <UserProfile :src="userProfileUrl" />
+          <UserProfile
+            :src="userProfileUrl"
+            @click="router.push('/mypage')"
+            class="cursor-pointer"
+          />
         </div>
 
         <Button
-          @click="toggleAuth"
-          class="h-9 rounded-xl border-none bg-[#FFE8A3] px-6 font-bold text-gray-900 shadow-none transition-colors hover:bg-[#FFD666]"
+          @click="handleAuthAction"
+          class="h-9 rounded-md border-none bg-[#FFE8A3] px-6 font-bold text-gray-900 shadow-none transition-colors hover:bg-[#FFD666]"
         >
           {{ isLoggedIn ? '로그아웃' : '로그인' }}
         </Button>
