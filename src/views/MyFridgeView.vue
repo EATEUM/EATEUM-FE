@@ -5,10 +5,16 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth'; 
 import FridgeSearchBar from '@/components/fridge/FridgeSearchBar.vue';
 import FridgeItem from '@/components/fridge/FridgeItem.vue';
+import ImageRecognitionModal from '@/components/fridge/ImageModal.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
 const myItems = ref([]);
+
+// 모달 상태 관리
+const isModalOpen = ref(false);
+const recognizedItems = ref([]);
+const isAnalyzing = ref(false);
 
 const isMember = computed(() => authStore.isLoggedIn);
 
@@ -16,8 +22,7 @@ const loadMyFridge = async () => {
   try {
     const res = await axios.get('/fridges');
     if (res.data && res.data.success) {
-      const serverData = res.data.data;
-      myItems.value = serverData.items || serverData.list || serverData.content || [];
+      myItems.value = res.data.data.items || [];
     }
   } catch (err) {
     console.error("데이터 로드 실패:", err);
@@ -31,24 +36,17 @@ const handleAddItem = async (itemId) => {
     }
     return;
   }
-
   try {
     const res = await axios.post('/fridges', { itemId });
     if (res.data.success) {
       await loadMyFridge(); 
-      alert(res.data.message); // 서버의 성공 메시지 ("성공")
+      alert(res.data.message);
     }
   } catch (err) {
-    //서버 응답(err.response)이 있는지 먼저 확인하고, 그 안의 data.message를 가져옵니다.
-    const serverMessage = err.response?.data?.message;
-    console.error("서버 에러 응답:", err.response);
-    
-    // 서버 메시지가 있으면 그것을 보여주고, 없으면 기본 메시지를 보여줍니다.
-    alert(serverMessage || "재료를 추가할 수 없습니다."); 
+    alert(err.response?.data?.message || "추가 실패");
   }
 };
 
-//재료 삭제: 서버가 보내는 상세 에러 메시지 노출
 const handleDeleteItem = async (itemId) => {
   if (!confirm("정말 삭제하시겠습니까?")) return;
   try {
@@ -58,11 +56,51 @@ const handleDeleteItem = async (itemId) => {
       alert(res.data.message);
     }
   } catch (err) {
-    //서버 에러 응답 객체에서 message 필드를 추출합니다.
-    const serverMessage = err.response?.data?.message;
-    console.error("서버 에러 응답:", err.response);
-    
-    alert(serverMessage || "삭제 처리 중 오류가 발생했습니다.");
+    alert(err.response?.data?.message || "삭제 실패");
+  }
+};
+
+// AI 이미지 분석 요청
+const handleImageRecognition = async (file) => {
+  if (!isMember.value) {
+    alert("이미지 분석 기능을 사용하려면 로그인이 필요합니다.");
+    router.push('/login');
+    return;
+  }
+
+  isModalOpen.value = true;
+  isAnalyzing.value = true;
+  recognizedItems.value = []; // 이전 결과 초기화
+  
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const res = await axios.post('/fridges/image-recognition', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    if (res.data.success) {
+      recognizedItems.value = res.data.data;
+    }
+  } catch (err) {
+    alert(err.response?.data?.message || "이미지 분석 중 오류가 발생했습니다.");
+    isModalOpen.value = false;
+  } finally {
+    isAnalyzing.value = false;
+  }
+};
+
+// 선택된 여러 재료 일괄 추가
+const handleAddMultipleItems = async (itemIds) => {
+  try {
+    const res = await axios.post('/fridges/add-items', itemIds);
+    if (res.data.success) {
+      alert(res.data.message);
+      isModalOpen.value = false;
+      loadMyFridge();
+    }
+  } catch (err) {
+    alert(err.response?.data?.message || "재료 추가 중 오류가 발생했습니다.");
   }
 };
 
@@ -71,18 +109,16 @@ onMounted(loadMyFridge);
 
 <template>
   <div class="min-h-screen bg-[#F0EEE9]"> 
-    <main class="max-w-[1080px] mx-auto pt-20 pb-20 flex flex-col items-center relative text-left">
+    <main class="max-w-[1080px] mx-auto pt-20 pb-20 flex flex-col items-center relative text-left px-4">
       
       <header class="text-center mb-12">
-        <div class="flex items-center justify-center gap-3 mb-4">
-          <h1 class="text-neutral-900 text-[48px] font-black tracking-tight">나의 냉장고</h1>
-        </div>
+        <h1 class="text-neutral-900 text-[48px] font-black tracking-tight mb-4">나의 냉장고</h1>
         <p class="text-stone-500 text-[18px] font-medium">냉장고 속 재료를 추가하고 맞춤 레시피를 추천받아 보세요.</p>
       </header>
 
-      <FridgeSearchBar @add-item="handleAddItem" />
+      <FridgeSearchBar @add-item="handleAddItem" @image-selected="handleImageRecognition" />
 
-      <div v-if="myItems.length > 0" class="grid grid-cols-5 gap-6 w-full mt-4">
+      <div v-if="myItems.length > 0" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 w-full mt-4">
         <FridgeItem 
           v-for="item in myItems" 
           :key="item.itemId" 
@@ -93,6 +129,14 @@ onMounted(loadMyFridge);
       <div v-else class="mt-32 text-center text-stone-400 font-bold text-xl">
         냉장고가 비어있습니다.
       </div>
+
+      <ImageRecognitionModal 
+        :is-open="isModalOpen"
+        :items="recognizedItems"
+        :is-loading="isAnalyzing"
+        @close="isModalOpen = false"
+        @confirm="handleAddMultipleItems"
+      />
     </main>
   </div>
 </template>
