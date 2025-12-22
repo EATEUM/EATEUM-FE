@@ -1,13 +1,6 @@
 <script setup>
 import { ref, watch } from 'vue'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -49,27 +42,19 @@ const checkEmailDuplicate = async () => {
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailPattern.test(email.value)) {
     alert('올바른 이메일 형식이 아닙니다. (예: example@email.com)')
-    return // 형식이 틀리면 서버로 보내지 않고 여기서 끝냅니다.
+    return
   }
 
   try {
-    // 백엔드 요청
     await userApi.checkEmailDuplicate(email.value)
 
-    // [성공 - 200 OK]
-    // 409가 안 뜨고 여기로 왔다는 건, 중복이 없다는 뜻입니다.
     alert('사용 가능한 이메일입니다.')
     isEmailAvailable.value = true
   } catch (error) {
-    // [실패 - 에러 발생]
-
-    // 1. 백엔드가 "중복됨(409)"라고 응답한 경우
     if (error.response && error.response.status === 409) {
       alert('이미 사용 중인 이메일입니다.')
       isEmailAvailable.value = false
-    }
-    // 2. 진짜 서버 에러인 경우 (500 등)
-    else {
+    } else {
       console.error('중복 확인 중 오류 발생', error)
       alert('서버 오류로 확인에 실패했습니다.')
       isEmailAvailable.value = false
