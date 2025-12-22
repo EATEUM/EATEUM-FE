@@ -183,6 +183,7 @@ const setHoveredRecipe = (id) => {
         </div>
       </section>
 
+      <!--  우측 재료들 컴포넌트    -->
       <section class="w-[340px] shrink-0 pt-[84px]">
         <Card
           class="sticky top-10 flex h-[calc(100vh-120px)] flex-col rounded-2xl border-none bg-white p-6 shadow-[0_10px_40px_rgba(0,0,0,0.04)]"
