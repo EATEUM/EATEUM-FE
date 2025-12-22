@@ -8,15 +8,13 @@ const props = defineProps({
   videoUrl: String,
   duration: String,
   viewCount: Number,
+  isAiRecommended: Boolean,
 })
 
 const isHovered = ref(false)
 
 const cleanTitle = computed(() => {
   if (!props.videoTitle) return ''
-
-  // "/n" 또는 "\n"을 공백으로 변경
-  // 연속된 공백을 하나로 줄임
   return props.videoTitle
     .replace(/(\/n|\\n)/g, ' ')
     .replace(/\s+/g, ' ')
@@ -32,28 +30,31 @@ const formattedViewCount = computed(() => {
 
 const youtubeEmbedUrl = computed(() => {
   if (!props.videoUrl) return ''
-  const id = props.videoUrl.split('v=')[1]
+  let id = ''
+  if (props.videoUrl.includes('v=')) {
+    id = props.videoUrl.split('v=')[1].split('&')[0]
+  } else if (props.videoUrl.includes('youtu.be/')) {
+    id = props.videoUrl.split('youtu.be/')[1].split('?')[0]
+  }
+
   return `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&controls=0&loop=1&playlist=${id}&modestbranding=1&rel=0`
 })
 </script>
 
 <template>
   <div
-    class="group/card flex h-[240px] w-[240px] flex-none cursor-pointer flex-col overflow-hidden rounded-xl border border-gray-100 bg-white transition-all duration-500"
+    class="group/card flex h-[240px] w-[240px] flex-none cursor-pointer flex-col overflow-hidden rounded-xl border border-gray-100 bg-white transition-all duration-300"
     :title="videoTitle"
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
   >
-    <div class="relative h-[135px] w-full overflow-hidden bg-gray-200">
-      <img
-        :src="thumbnailUrl"
-        class="absolute inset-0 h-full w-full object-cover transition-opacity duration-300"
-        :class="isHovered ? 'opacity-0' : 'opacity-100'"
-      />
+    <div class="relative h-[135px] w-full overflow-hidden bg-black">
+      <img :src="thumbnailUrl" class="absolute inset-0 z-0 h-full w-full object-cover" />
 
       <iframe
+        v-if="isHovered"
         :src="youtubeEmbedUrl"
-        class="absolute inset-0 h-full w-full transition-opacity duration-300"
+        class="absolute inset-0 z-10 h-full w-full transition-opacity duration-300"
         :class="isHovered ? 'opacity-100' : 'pointer-events-none opacity-0'"
         frameborder="0"
         allow="autoplay; encrypted-media"
@@ -61,14 +62,14 @@ const youtubeEmbedUrl = computed(() => {
       />
 
       <span
-        class="absolute right-1.5 bottom-1.5 z-10 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-medium text-white"
+        class="absolute right-1.5 bottom-1.5 z-20 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-medium text-white"
       >
         {{ duration }}
       </span>
 
       <span
         v-if="isAiRecommended"
-        class="absolute top-2 left-2 z-10 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur"
+        class="absolute top-2 left-2 z-20 rounded-full bg-yellow-500 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur"
       >
         AI 추천
       </span>
@@ -87,5 +88,3 @@ const youtubeEmbedUrl = computed(() => {
     </div>
   </div>
 </template>
-
-<style scoped></style>

@@ -26,7 +26,7 @@ const handleLogin = async () => {
     // const response = await axios.post('/api/login', loginData)
 
     alert('반가워요! 로그인에 성공했습니다.')
-    router.push('/') // 메인 페이지로 이동
+    router.push('/')
   } catch (error) {
     alert('로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.')
   }

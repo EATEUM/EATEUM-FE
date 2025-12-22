@@ -6,6 +6,7 @@ import ProfileEditView from '@/views/ProfileEditView.vue'
 import PasswordConfirmView from '@/views/PasswordConfirmView.vue'
 import MyFridgeView from '@/views/MyFridgeView.vue'
 import AiRecipeResultView from '@/views/AiRecipeResultView.vue'
+import RecipeDetailView from '@/views/RecipeDetailView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -27,6 +28,10 @@ const router = createRouter({
     {
       path: '/ai-result',
       component: AiRecipeResultView,
+    },
+    {
+      path: '/recipe-detail',
+      component: RecipeDetailView,
     },
   ],
 })
