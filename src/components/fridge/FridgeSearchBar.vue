@@ -70,7 +70,7 @@ const handleFileChange = (e) => {
           @input="onInput"
           type="text" 
           placeholder="어떤 재료를 추가할까요? (예: 토마토)" 
-          class="flex-1 bg-transparent border-none outline-none text-neutral-800 text-lg font-bold placeholder:text-stone-300" 
+          class="flex-1 bg-transparent border-none outline-none text-neutral-800 text-lg font-medium placeholder:text-stone-300" 
         />
       </div>
 

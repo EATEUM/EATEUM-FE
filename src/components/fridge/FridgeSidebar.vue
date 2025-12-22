@@ -1,16 +1,39 @@
 <script setup>
 import { computed } from 'vue';
+import { useRouter } from 'vue-router'; // 라우터 사용
+import { useAuthStore } from '@/stores/auth'; // 로그인 상태 확인
 
 const props = defineProps({
   items: { type: Array, default: () => [] }
 });
 
+const router = useRouter();
+const authStore = useAuthStore();
+
+// 로그인 여부 확인
+const isLoggedIn = computed(() => authStore.isLoggedIn);
+
 // 재료가 있을 때만 버튼 활성화
 const hasItems = computed(() => props.items.length > 0);
+
+/**
+ * AI 레시피 생성 버튼 클릭 핸들러
+ */
+const handleRecipeClick = () => {
+  if (!isLoggedIn.value) {
+    // 비회원: 메시지 출력 후 로그인 페이지 이동
+    alert("로그인 후 이용해 주세요.");
+    router.push('/login');
+    return;
+  }
+  
+  // 회원: AI 결과 페이지로 이동
+  router.push('/ai-result');
+};
 </script>
 
 <template>
-  <div class="sticky top-10 flex h-[calc(100vh-140px)] w-full flex-col rounded-3xl border border-stone-100 bg-white p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.03)]">
+  <div class="sticky top-8 flex h-187 w-full flex-col rounded-3xl border border-stone-100 bg-white p-6 shadow-[0px_4px_20px_rgba(0,0,0,0.03)]">
     <div class="mb-6 flex items-center justify-between">
       <h2 class="text-lg font-black text-gray-900">나의 냉장고</h2>
       <div class="px-3 py-1 rounded-full bg-amber-100 text-amber-600 text-sm font-black shadow-sm">
@@ -30,6 +53,7 @@ const hasItems = computed(() => props.items.length > 0);
 
     <div>
       <button 
+        @click="handleRecipeClick"
         :disabled="!hasItems"
         class="h-14 w-full rounded-2xl font-black text-base transition-all shadow-md active:scale-95"
         :class="hasItems 
@@ -41,3 +65,14 @@ const hasItems = computed(() => props.items.length > 0);
     </div>
   </div>
 </template>
+
+<style scoped>
+/* 스크롤바 스타일 유지 */
+div::-webkit-scrollbar {
+  width: 4px;
+}
+div::-webkit-scrollbar-thumb {
+  background-color: #e5e7eb;
+  border-radius: 10px;
+}
+</style>

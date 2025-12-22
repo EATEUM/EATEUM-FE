@@ -1,45 +1,57 @@
+<script setup>
+import { onMounted, ref } from 'vue'
+import axios from '@/lib/axios' // [추가] 재료 조회를 위한 axios 임포트
+import Autoplay from 'embla-carousel-autoplay'
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel'
+import RecipeCard from '@/components/recipe/RecipeCard.vue'
+import FridgeSidebar from '@/components/fridge/FridgeSidebar.vue'
+import RecipeSection from '@/components/recipe/RecipeCarousel.vue'
+
+// 상태 정의
+const aiRecommendRecipes = ref([])
+const popularRecipes = ref([])
+const speedRecipes = ref([])
+const myItems = ref([]) // [추가] 사이드바에 표시할 재료 상태
+
+// [추가] 내 냉장고 재료를 서버에서 불러오는 로직
+const loadMyFridgeForSidebar = async () => {
+  try {
+    const res = await axios.get('/fridges', {
+      params: { page: 1, size: 8 } // 사이드바용이므로 넉넉하게 가져옴
+    });
+    if (res.data && res.data.success) {
+      myItems.value = res.data.data.items || res.data.data.content || [];
+    }
+  } catch (err) {
+    console.error('사이드바 재료 로드 실패:', err);
+  }
+};
+
+// --- [기존 Mock Fetch 함수 및 responseData 유지] ---
+// ... (중략: mockFetchAiRecipes, responseData 등 기존 코드)
+
+const plugin = Autoplay({ delay: 6000, stopOnInteraction: true })
+
+onMounted(() => {
+  // 기존 레시피 데이터 초기화 유지
+  const data = responseData.data
+  aiRecommendRecipes.value = data.aiRecommendRecipes
+  popularRecipes.value = data.popularRecipes
+  speedRecipes.value = data.speedRecipes
+  
+  loadMyFridgeForSidebar(); // [추가] 페이지 로드 시 재료 가져오기 실행
+})
+</script>
+
 <template>
-  <div class="w-full flex justify-center py-12 px-8 bg-[#F0EEE9]">
-    <div class="w-full max-w-[1024px] flex flex-col gap-10">
-      
-      <div class="px-4">
-        <h1 class="text-stone-700 text-4xl font-black tracking-tight font-pretendard">마이 페이지</h1>
-      </div>
+  <div class="min-h-screen p-8">
+    <div class="mx-auto flex max-w-[1120px] items-start gap-8">
+      <div class="min-w-0 flex-1 space-y-8">
+        </div>
 
-      <ProfileSection />
-
-      <nav class="flex gap-10 border-b border-stone-200 px-6">
-        <button
-          v-for="tab in tabs"
-          :key="tab"
-          @click="activeTab = tab"
-          :class="[
-            'h-14 flex items-center text-base font-bold transition-all border-b-[3px] font-pretendard',
-            activeTab === tab 
-              ? 'border-stone-700 text-stone-700' 
-              : 'border-transparent text-neutral-400 hover:text-stone-600'
-          ]"
-        >
-          {{ tab }}
-        </button>
-      </nav>
-
-      <div class="px-4 w-full min-h-[700px]">
-        <CompletedRecipes v-if="activeTab === '완성 레시피'" />
-        <LikedRecipes v-else-if="activeTab === '좋아요 레시피'" />
-        <CookingDashboard v-else-if="activeTab === '요리 기록 대시보드'" />
-      </div>
+      <aside class="w-72 flex-shrink-0">
+        <FridgeSidebar :items="myItems" />
+      </aside>
     </div>
   </div>
 </template>
-
-<script setup>
-import { ref } from 'vue'
-import ProfileSection from '@/components/mypage/ProfileSection.vue'
-import CompletedRecipes from '@/components/mypage/CompletedRecipes.vue'
-import LikedRecipes from '@/components/mypage/LikedRecipes.vue'
-import CookingDashboard from '@/components/mypage/CookingDashboard.vue'
-
-const activeTab = ref('완성 레시피')
-const tabs = ['완성 레시피', '좋아요 레시피', '요리 기록 대시보드']
-</script>
