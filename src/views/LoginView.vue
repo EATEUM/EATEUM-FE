@@ -5,12 +5,15 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/stores/auth'
+import { Eye, EyeOff } from 'lucide-vue-next'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
 const email = ref('')
 const password = ref('')
+
+const showPassword = ref(false)
 
 const handleLogin = async () => {
   if (!email.value || !password.value) {
@@ -32,11 +35,9 @@ const handleLogin = async () => {
 
   try {
     await authStore.login(loginData)
-
     router.replace('/')
   } catch (error) {
     console.error('로그인 실패:', error)
-
     if (error.response && error.response.status === 401) {
       alert('아이디 또는 비밀번호가 일치하지 않습니다.')
     } else {
@@ -68,13 +69,23 @@ const goToSignUp = () => {
             class="h-12 rounded-xl border-gray-100 bg-gray-50 px-4 focus-visible:ring-[#FFE082]"
           />
 
-          <Input
-            v-model="password"
-            type="password"
-            placeholder="비밀번호"
-            required
-            class="h-12 rounded-xl border-gray-100 bg-gray-50 px-4 focus-visible:ring-[#FFE082]"
-          />
+          <div class="relative">
+            <Input
+              v-model="password"
+              :type="showPassword ? 'text' : 'password'"
+              placeholder="비밀번호"
+              required
+              class="h-12 rounded-xl border-gray-100 bg-gray-50 px-4 pr-12 focus-visible:ring-[#FFE082]"
+            />
+            <button
+              type="button"
+              @click="showPassword = !showPassword"
+              class="absolute top-1/2 right-4 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-600"
+            >
+              <Eye v-if="!showPassword" :size="20" />
+              <EyeOff v-else :size="20" />
+            </button>
+          </div>
 
           <Button
             type="submit"
@@ -91,9 +102,7 @@ const goToSignUp = () => {
             >
               이메일 찾기
             </button>
-
             <span class="h-3 w-[1px] bg-gray-300"></span>
-
             <button
               type="button"
               @click="router.push('/find-account?tab=password')"
