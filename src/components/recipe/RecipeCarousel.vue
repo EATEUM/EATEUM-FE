@@ -1,5 +1,5 @@
 <script setup>
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel'
+import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel'
 import Autoplay from 'embla-carousel-autoplay'
 import RecipeCard from '@/components/recipe/RecipeCard.vue'
 
@@ -12,7 +12,6 @@ defineProps({
 
 const plugin = Autoplay({ delay: 6000, stopOnInteraction: true })
 </script>
-
 <template>
   <section class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
     <div class="mb-4">
@@ -27,15 +26,17 @@ const plugin = Autoplay({ delay: 6000, stopOnInteraction: true })
     >
       <CarouselContent class="-ml-4">
         <CarouselItem v-for="recipe in recipes" :key="recipe.recipeVideoId" class="basis-1/3 pl-4">
-          <RecipeCard :isAiRecommended="isAiSection" v-bind="recipe" />
+          <RecipeCard
+            :isAiRecommended="isAiSection"
+            :recipeVideoId="recipe.recipeVideoId"
+            :videoTitle="recipe.videoTitle"
+            :thumbnailUrl="recipe.thumbnailUrl"
+            :videoUrl="recipe.videoUrl"
+            :duration="recipe.duration"
+            :viewCount="recipe.viewCount"
+          />
         </CarouselItem>
       </CarouselContent>
-      <CarouselPrevious
-        class="absolute top-1/2 -left-4 z-20 h-8 w-8 -translate-y-1/2 border-gray-100 bg-white/90 text-gray-800 opacity-0 shadow-md transition-opacity group-hover:opacity-100 hover:bg-white"
-      />
-      <CarouselNext
-        class="absolute top-1/2 -right-4 z-20 h-8 w-8 -translate-y-1/2 border-gray-100 bg-white/90 text-gray-800 opacity-0 shadow-md transition-opacity group-hover:opacity-100 hover:bg-white"
-      />
     </Carousel>
   </section>
 </template>
