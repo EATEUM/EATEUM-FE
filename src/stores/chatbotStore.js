@@ -19,11 +19,11 @@ export const useChatbotStore = defineStore('chatbot', () => {
   // 로딩 상태 (AI 답변 대기)
   const isLoading = ref(false)
 
-  // 첫 안내 메시지 표시 여부
-  const hasShownSuggest = ref(false)
-
   //히스토리 로드 여부
   const hasLoadedHistory = ref(false)
+
+  // SUGGEST_MESSAGE 표시 여부
+  const hasShownSuggest = ref(false)
 
   /** =========================
    * 액션 (Actions)
@@ -50,20 +50,18 @@ export const useChatbotStore = defineStore('chatbot', () => {
     localStorage.setItem('guestSessionId', sessionId)
   }
 
-  // 첫 안내 메시지 표시 완료 처리
-  const markSuggestShown = () => {
-    hasShownSuggest.value = true
-  }
-
   const markHistoryLoaded = () => {
     hasLoadedHistory.value = true
+  }
+
+  const markSuggestShown = () => {
+    hasShownSuggest.value = true
   }
 
   // 채팅 초기화 (로그인 전환 시 사용)
   const reset = () => {
     messages.value = []
     guestSessionId.value = null
-    hasShownSuggest.value = false
     hasLoadedHistory.value = false
     localStorage.removeItem('guestSessionId')
   }
@@ -78,16 +76,16 @@ export const useChatbotStore = defineStore('chatbot', () => {
     guestSessionId,
     messages,
     isLoading,
-    hasShownSuggest,
     hasLoadedHistory,
+    hasShownSuggest,
 
     // actions
     open,
     close,
     addMessage,
     setGuestSessionId,
-    markSuggestShown,
     markHistoryLoaded,
+    markSuggestShown,
     reset,
   }
 })
