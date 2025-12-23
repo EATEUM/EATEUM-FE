@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Eye, EyeOff } from 'lucide-vue-next'
 import userApi from '@/api/userApi'
 import { useAuthStore } from '@/stores/auth.js'
+import { alert, alertSuccess } from '@/composables/useAlert'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -27,7 +28,7 @@ const foundEmail = ref('')
 // 이메일 찾기
 const handleFindEmail = async () => {
   if (!name.value || !phone.value) {
-    alert('이름과 전화번호를 입력해주세요.')
+    alert('이름과 전화번호를 입력해주세요.', { title: '입력 오류' })
     return
   }
 
@@ -45,19 +46,19 @@ const handleFindEmail = async () => {
     }
   } catch (error) {
     console.error(error)
-    alert(error.response?.data?.message || '일치하는 회원 정보를 찾을 수 없습니다.')
+    alert(error.response?.data?.message || '일치하는 회원 정보를 찾을 수 없습니다.', { title: '조회 실패' })
   }
 }
 
 // 비밀번호 찾기
 const handleResetPassword = async () => {
   if (!email.value || !name.value || !phone.value || !newPassword.value) {
-    alert('모든 정보를 입력해주세요.')
+    alert('모든 정보를 입력해주세요.', { title: '입력 오류' })
     return
   }
 
   if (newPassword.value !== confirmPassword.value) {
-    alert('비밀번호가 일치하지 않습니다.')
+    alert('비밀번호가 일치하지 않습니다.', { title: '입력 오류' })
     return
   }
 
@@ -73,13 +74,17 @@ const handleResetPassword = async () => {
     const response = await userApi.findPassword(requestData)
 
     if (response.data.success) {
-      alert(response.data.data.message || '비밀번호가 변경되었습니다. 다시 로그인해주세요.')
-      await authStore.logout()
-      router.replace('/login')
+      alertSuccess(response.data.data.message || '비밀번호가 변경되었습니다. 다시 로그인해주세요.', {
+        title: '변경 완료',
+        onConfirm: async () => {
+          await authStore.logout()
+          router.replace('/login')
+        }
+      })
     }
   } catch (error) {
     console.error(error)
-    alert(error.response?.data?.message || '정보 확인에 실패했습니다.')
+    alert(error.response?.data?.message || '정보 확인에 실패했습니다.', { title: '변경 실패' })
   }
 }
 

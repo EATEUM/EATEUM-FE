@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/auth'
 import FridgeSearchBar from '@/components/fridge/FridgeSearchBar.vue'
 import FridgeItem from '@/components/fridge/FridgeItem.vue'
 import ImageRecognitionModal from '@/components/fridge/ImageModal.vue'
+import { alert, alertWarning, confirm, confirmDelete } from '@/composables/useAlert'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -49,8 +50,10 @@ const loadMyFridge = async (page = 1) => {
   } catch (err) {
     console.error('데이터 로드 실패:', err)
     if (err.response?.status === 401) {
-      alert('세션이 만료되었습니다. 다시 로그인해 주세요.')
-      router.push('/login')
+      alertWarning('세션이 만료되었습니다. 다시 로그인해 주세요.', {
+        title: '세션 만료',
+        onConfirm: () => router.push('/login')
+      })
     }
   } finally {
     isFetching.value = false
@@ -98,24 +101,29 @@ const refreshList = async () => {
 
 const handleAddItem = async (itemId) => {
   if (!isMember.value) {
-    if (confirm('로그인이 필요합니다.')) router.push('/login')
+    const shouldLogin = await confirm('로그인이 필요합니다.', {
+      title: '로그인 필요',
+      confirmText: '로그인하기'
+    })
+    if (shouldLogin) router.push('/login')
     return
   }
   try {
     const res = await axios.post('/fridges', { itemId })
     if (res.data.success) await refreshList()
   } catch (err) {
-    alert(err.response?.data?.message || '추가 실패')
+    alert(err.response?.data?.message || '추가 실패', { title: '추가 실패' })
   }
 }
 
 const handleDeleteItem = async (itemId) => {
-  if (!confirm('삭제하시겠습니까?')) return
+  const shouldDelete = await confirmDelete('삭제하시겠습니까?', { title: '재료 삭제' })
+  if (!shouldDelete) return
   try {
     const res = await axios.delete('/fridges', { params: { itemId } })
     if (res.data.success) await refreshList()
   } catch (err) {
-    alert(err.response?.data?.message || '삭제 실패')
+    alert(err.response?.data?.message || '삭제 실패', { title: '삭제 실패' })
   }
 }
 
@@ -144,7 +152,7 @@ const handleAddMultipleItems = async (itemIds) => {
       await refreshList()
     }
   } catch (err) {
-    alert('추가 실패')
+    alert('추가 실패', { title: '추가 실패' })
   }
 }
 </script>

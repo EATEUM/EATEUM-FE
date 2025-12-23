@@ -54,6 +54,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { X } from 'lucide-vue-next'
 import axios from '@/lib/axios'
+import { confirmDelete } from '@/composables/useAlert'
 
 const router = useRouter()
 const completedRecipes = ref([])
@@ -80,7 +81,11 @@ const fetchCompletedRecipes = async () => {
 }
 
 const toggleComplete = async (recipeVideoId) => {
-  if (!confirm('완성 목록에서 삭제하시겠습니까?')) return
+  const shouldRemove = await confirmDelete('완성 목록에서 삭제하시겠습니까?', {
+    title: '완성 목록 삭제',
+    confirmText: '삭제'
+  })
+  if (!shouldRemove) return
   try {
     const response = await axios.post(`/recipes/${recipeVideoId}/complete`)
     if (response.data.success) {

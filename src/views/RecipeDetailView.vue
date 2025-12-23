@@ -9,6 +9,7 @@ import Memo from '@/components/memo/Memo.vue'
 import RecipeTimer from '@/components/recipe/RecipeTimer.vue'
 import RelatedVideos from '@/components/recipe/RelatedVideos.vue'
 import recipeApi from '@/api/recipeApi.js'
+import { alert, confirm, confirmDelete } from '@/composables/useAlert'
 
 const authStore = useAuthStore()
 const route = useRoute()
@@ -60,7 +61,11 @@ const fetchRecipeDetail = async () => {
 
 const handleToggleLike = async () => {
   if (!authStore.user) {
-    if (confirm('로그인 후 이용 가능한 서비스입니다.\n로그인 페이지로 이동하시겠습니까?')) {
+    const shouldLogin = await confirm('로그인 후 이용 가능한 서비스입니다.\n로그인 페이지로 이동하시겠습니까?', {
+      title: '로그인 필요',
+      confirmText: '로그인하기'
+    })
+    if (shouldLogin) {
       router.push({ name: 'Login' })
     }
     return
@@ -80,7 +85,7 @@ const handleToggleLike = async () => {
 
 const handleToggleComplete = async () => {
   if (!authStore.user) {
-    alert('로그인 후 이용 가능한 서비스입니다.')
+    alert('로그인 후 이용 가능한 서비스입니다.', { title: '로그인 필요' })
     return
   }
 
@@ -93,7 +98,7 @@ const handleToggleComplete = async () => {
     }
   } catch (error) {
     console.error('완료 처리 실패:', error)
-    alert('완료 처리에 실패했습니다.')
+    alert('완료 처리에 실패했습니다.', { title: '오류' })
   }
 }
 
@@ -109,7 +114,8 @@ const handleAddMemo = async (text) => {
 }
 
 const handleDeleteMemo = async (memoId) => {
-  if (!confirm('메모를 삭제하시겠습니까?')) return
+  const shouldDelete = await confirmDelete('메모를 삭제하시겠습니까?', { title: '메모 삭제' })
+  if (!shouldDelete) return
 
   try {
     const response = await recipeApi.deleteMemo(memoId)
@@ -118,7 +124,7 @@ const handleDeleteMemo = async (memoId) => {
     }
   } catch (error) {
     console.error('메모 삭제 실패:', error)
-    alert('메모 삭제에 실패했습니다.')
+    alert('메모 삭제에 실패했습니다.', { title: '삭제 실패' })
   }
 }
 

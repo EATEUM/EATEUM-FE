@@ -8,6 +8,7 @@ import { Eye, EyeOff } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import ProfileImageUploader from '@/components/user/ProfileImageUploader.vue'
 import userApi from '@/api/userApi'
+import { alert, alertSuccess } from '@/composables/useAlert'
 
 const router = useRouter()
 
@@ -35,40 +36,40 @@ const inputStyle =
   'pr-24 transition-shadow focus-visible:shadow-[0_0_15px_rgba(160,140,127,0.3)] focus-visible:ring-0'
 const checkEmailDuplicate = async () => {
   if (!email.value?.trim()) {
-    alert('이메일을 입력해주세요.')
+    alert('이메일을 입력해주세요.', { title: '입력 오류' })
     return
   }
 
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailPattern.test(email.value)) {
-    alert('올바른 이메일 형식이 아닙니다. (예: example@email.com)')
+    alert('올바른 이메일 형식이 아닙니다. (예: example@email.com)', { title: '입력 오류' })
     return
   }
 
   try {
     await userApi.checkEmailDuplicate(email.value)
 
-    alert('사용 가능한 이메일입니다.')
+    alertSuccess('사용 가능한 이메일입니다.', { title: '확인 완료' })
     isEmailAvailable.value = true
   } catch (error) {
     if (error.response && error.response.status === 409) {
-      alert('이미 사용 중인 이메일입니다.')
+      alert('이미 사용 중인 이메일입니다.', { title: '중복 확인' })
       isEmailAvailable.value = false
     } else {
       console.error('중복 확인 중 오류 발생', error)
-      alert('서버 오류로 확인에 실패했습니다.')
+      alert('서버 오류로 확인에 실패했습니다.', { title: '서버 오류' })
       isEmailAvailable.value = false
     }
   }
 }
 const handleSubmit = async () => {
   if (!isEmailAvailable.value) {
-    alert('이메일 중복 확인을 해주세요.')
+    alert('이메일 중복 확인을 해주세요.', { title: '확인 필요' })
     return
   }
 
   if (password.value !== passwordConfirm.value) {
-    alert('비밀번호가 서로 일치하지 않습니다.')
+    alert('비밀번호가 서로 일치하지 않습니다.', { title: '입력 오류' })
     return
   }
 
@@ -92,14 +93,16 @@ const handleSubmit = async () => {
 
     const resData = response.data
     if (resData.success) {
-      alert('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.')
-      await router.push('/login')
+      alertSuccess('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.', {
+        title: '가입 완료',
+        onConfirm: () => router.push('/login')
+      })
     } else {
-      alert(resData.message)
+      alert(resData.message, { title: '회원가입 실패' })
     }
   } catch (error) {
     console.error('회원가입 에러:', error)
-    alert(error.response?.data?.message || '회원가입 요청 중 오류가 발생했습니다.')
+    alert(error.response?.data?.message || '회원가입 요청 중 오류가 발생했습니다.', { title: '서버 오류' })
   }
 }
 </script>

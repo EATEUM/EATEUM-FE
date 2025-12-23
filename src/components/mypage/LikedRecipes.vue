@@ -122,6 +122,7 @@ onMounted(() => {
 import { ref, onMounted } from 'vue'
 import { Heart, X } from 'lucide-vue-next'
 import axios from '@/lib/axios'
+import { confirmDelete } from '@/composables/useAlert'
 
 const likedRecipes = ref([])
 
@@ -149,7 +150,11 @@ const fetchLikedRecipes = async () => {
  * 좋아요 취소(토글) 함수
  */
 const toggleLike = async (recipeVideoId) => {
-  if (!confirm('좋아요를 취소하시겠습니까?')) return
+  const shouldUnlike = await confirmDelete('좋아요를 취소하시겠습니까?', {
+    title: '좋아요 취소',
+    confirmText: '취소'
+  })
+  if (!shouldUnlike) return
   try {
     const response = await axios.post(`/recipes/${recipeVideoId}/like`)
     if (response.data.success) {
