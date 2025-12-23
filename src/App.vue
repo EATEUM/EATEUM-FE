@@ -16,6 +16,7 @@ import ChatbotButton from '@/components/chat/ChatbotButton.vue'
       </div>
     </main>
     <ChatbotAside />
+    <ChatbotButton />
     <Footer />
   </div>
 </template>
