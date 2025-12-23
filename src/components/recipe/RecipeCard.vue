@@ -42,7 +42,8 @@ const youtubeEmbedUrl = computed(() => {
 </script>
 
 <template>
-  <div
+  <router-link
+    :to="{ name: 'RecipeDetail', query: { recipeVideoId: props.recipeVideoId } }"
     class="group/card flex h-[240px] w-[240px] flex-none cursor-pointer flex-col overflow-hidden rounded-xl border border-gray-100 bg-white transition-all duration-300"
     :title="videoTitle"
     @mouseenter="isHovered = true"
@@ -86,5 +87,5 @@ const youtubeEmbedUrl = computed(() => {
         <span>조회수 {{ formattedViewCount }}</span>
       </div>
     </div>
-  </div>
+  </router-link>
 </template>

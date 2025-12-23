@@ -20,8 +20,6 @@ export const useAuthStore = defineStore(
       }
     }
 
-    // [수정] 다른 파일들(axios.js, MainView 등)에서 사용하는 이름으로 통일
-    const isLoggedIn = computed(() => !!accessToken.value)
     const isAuthenticated = computed(() => !!accessToken.value)
 
     const getMyInfo = async () => {
@@ -112,7 +110,6 @@ export const useAuthStore = defineStore(
       setPasswordVerified,
       initializeAuth,
       isAuthenticated,
-      isLoggedIn, // [추가] 반환값에 추가
       login,
       logout,
       withdraw,
