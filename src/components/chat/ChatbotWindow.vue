@@ -20,10 +20,9 @@ const messageContainerRef = ref(null)
  * ========================= */
 const SUGGEST_MESSAGE = {
   role: 'ASSISTANT',
-  content: `안녕하세요! 저는 EAT:EUM의 요리 도우미, 이틈이에요 🌱
-서비스 이용 방법이나 요리와 관련된 궁금한 점을 안내해 드려요.
-
-편하게 질문해 주세요!`,
+  content: `당신의 요리 도우미 이틈이에요.
+서비스 이용 방법이나 궁금한 점을 안내해 드려요.`,
+  isSuggest: true,
 }
 
 /* =========================
@@ -115,11 +114,27 @@ onMounted(async () => {
   // 1️⃣ 히스토리 먼저 로드
   await loadHistory()
 
-  // 2️⃣ 히스토리까지 불러왔는데도 메시지가 없다면
-  if (chatbotStore.messages.length === 0 && !chatbotStore.hasShownSuggest) {
-    chatbotStore.addMessage(SUGGEST_MESSAGE.role, SUGGEST_MESSAGE.content)
-    chatbotStore.markSuggestShown()
+  // 2️⃣ 안내 메시지가 없으면 맨 앞에 추가
+  const hasSuggestMessage = chatbotStore.messages.some(msg => msg.isSuggest)
+
+  if (!hasSuggestMessage) {
+    chatbotStore.messages.unshift({
+      role: SUGGEST_MESSAGE.role,
+      content: SUGGEST_MESSAGE.content,
+      isSuggest: SUGGEST_MESSAGE.isSuggest
+    })
   }
+
+  // 3️⃣ 스크롤을 하단으로 이동
+  await nextTick()
+  setTimeout(() => {
+    if (messageContainerRef.value) {
+      messageContainerRef.value.scrollTo({
+        top: messageContainerRef.value.scrollHeight,
+        behavior: 'smooth'
+      })
+    }
+  }, 150)
 })
 
 /* =========================
@@ -130,7 +145,10 @@ watch(
   async () => {
     await nextTick()
     if (messageContainerRef.value) {
-      messageContainerRef.value.scrollTop = messageContainerRef.value.scrollHeight
+      messageContainerRef.value.scrollTo({
+        top: messageContainerRef.value.scrollHeight,
+        behavior: 'smooth'
+      })
     }
   },
 )
@@ -140,7 +158,10 @@ watch(
   async () => {
     await nextTick()
     if (messageContainerRef.value) {
-      messageContainerRef.value.scrollTop = messageContainerRef.value.scrollHeight
+      messageContainerRef.value.scrollTo({
+        top: messageContainerRef.value.scrollHeight,
+        behavior: 'smooth'
+      })
     }
   },
 )
@@ -153,11 +174,19 @@ watch(
     // DOM 렌더링 완료 대기
     await nextTick()
 
-    if (messageContainerRef.value) {
-      messageContainerRef.value.scrollTop = messageContainerRef.value.scrollHeight
-    }
+    // 추가 대기 (트랜지션/애니메이션 고려)
+    setTimeout(() => {
+      if (messageContainerRef.value) {
+        messageContainerRef.value.scrollTo({
+          top: messageContainerRef.value.scrollHeight,
+          behavior: 'smooth'
+        })
+      }
+    }, 150)
   },
+  { flush: 'post' }
 )
+
 </script>
 
 <template>
@@ -181,10 +210,16 @@ watch(
         :key="idx"
         :role="msg.role"
         :content="msg.content"
+        :isSuggest="msg.isSuggest"
       />
 
-      <div v-if="chatbotStore.isLoading" class="text-sm text-gray-500">
-        이틈이가 답변 중이에요...!
+      <div v-if="chatbotStore.isLoading" class="flex items-center gap-2">
+        <img src="../../assets/chatbot.png" alt="이틈이" class="h-6 w-6 rounded-full" />
+        <div class="flex gap-1">
+          <span class="text-gray-500 animate-bounce" style="animation-delay: 0ms;">•</span>
+          <span class="text-gray-500 animate-bounce" style="animation-delay: 150ms;">•</span>
+          <span class="text-gray-500 animate-bounce" style="animation-delay: 300ms;">•</span>
+        </div>
       </div>
     </section>
 
