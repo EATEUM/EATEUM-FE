@@ -11,14 +11,15 @@ import { useAuthStore } from '@/stores/auth'
 const router = useRouter()
 const authStore = useAuthStore()
 
-const isLoggedIn = computed(() => !!authStore.user)
+const isAuthenticated = computed(() => authStore.isAuthenticated)
+
 const userProfileUrl = computed(() => authStore.user?.profileImage || '')
 
 const handleAuthAction = async () => {
-  if (isLoggedIn.value) {
+  if (isAuthenticated.value) {
     if (confirm('로그아웃 하시겠습니까?')) {
       await authStore.logout()
-      router.push('/') // 메인으로 이동
+      router.push('/')
     }
   } else {
     router.push('/login')
@@ -28,7 +29,7 @@ const handleAuthAction = async () => {
 const navLinks = [
   { name: '홈', path: '/' },
   { name: '나의 냉장고', path: '/fridge' },
-  { name: '마이페이지', path: '/mypage' },
+  { name: '마이페이지', path: '/my' },
 ]
 </script>
 
@@ -54,7 +55,7 @@ const navLinks = [
       </div>
 
       <div class="z-10 flex items-center gap-4">
-        <div v-if="isLoggedIn" class="mr-2 flex items-center gap-2">
+        <div v-if="isAuthenticated" class="mr-2 flex items-center gap-2">
           <button
             class="flex h-10 w-10 items-center justify-center rounded-xl bg-stone-50 text-neutral-500 transition-all duration-200 hover:bg-stone-100 hover:text-neutral-900"
           >
@@ -66,18 +67,14 @@ const navLinks = [
             <Bell :size="20" />
           </button>
 
-          <UserProfile
-            :src="userProfileUrl"
-            @click="router.push('/mypage')"
-            class="cursor-pointer"
-          />
+          <UserProfile :src="userProfileUrl" @click="router.push('/my')" class="cursor-pointer" />
         </div>
 
         <Button
           @click="handleAuthAction"
           class="h-9 rounded-md border-none bg-[#FFE8A3] px-6 font-bold text-gray-900 shadow-none transition-colors hover:bg-[#FFD666]"
         >
-          {{ isLoggedIn ? '로그아웃' : '로그인' }}
+          {{ isAuthenticated ? '로그아웃' : '로그인' }}
         </Button>
       </div>
     </div>

@@ -53,8 +53,8 @@ const router = createRouter({
       component: FindAccountView,
     },
     {
-      path: '/mypage',
-      name: 'mypage',
+      path: '/my',
+      name: 'my',
       component: MyPageView,
     },
   ],

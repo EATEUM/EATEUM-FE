@@ -1,17 +1,32 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import RecipeCarousel from '@/components/recipe/RecipeCarousel.vue' // 컴포넌트 이름 확인
 import FridgeSidebar from '@/components/fridge/FridgeSidebar.vue'
 import recipeApi from '@/api/recipeApi'
+import fridgeApi from '@/api/fridgeApi'
 
 const aiRecommendRecipes = ref([])
 const popularRecipes = ref([])
 const speedRecipes = ref([])
 const isLoading = ref(false)
+const myItems = ref([])
 
 const authStore = useAuthStore()
-const isLoggedIn = computed(() => authStore.isLoggedIn)
+const isAuthenticated = computed(() => authStore.isAuthenticated)
+
+const fetchAiRecommendations = async (selectedNames = []) => {
+  try {
+    const res = await recipeApi.getAiRecommendations(selectedNames)
+    if (res.data.success) {
+      aiRecommendRecipes.value = res.data.data
+
+      // router.push('/ai-result')
+    }
+  } catch (error) {
+    console.error('AI 추천 로드 실패:', error)
+  }
+}
 
 const fetchAllRecipes = async () => {
   isLoading.value = true
@@ -30,13 +45,46 @@ const fetchAllRecipes = async () => {
   } finally {
     isLoading.value = false
   }
-
-
-
 }
 
-onMounted(fetchAllRecipes)
+const loadSidebarFridge = async () => {
+  try {
+    const res = await fridgeApi.getFridgeItems(1, 20)
 
+    if (res.data && res.data.success) {
+      myItems.value = res.data.data.items || res.data.data.content || []
+    }
+  } catch (err) {
+    console.error('메인 페이지 사이드바 재료 로드 실패:', err)
+  }
+}
+
+const handleDeleteItem = async (itemId) => {
+  try {
+    const res = await fridgeApi.deleteFridgeItem(itemId)
+    if (res.data && res.data.success) {
+      await loadSidebarFridge()
+    }
+  } catch (err) {
+    console.error('삭제 처리 중 오류:', err)
+  }
+}
+onMounted(() => {
+  fetchAllRecipes()
+  loadSidebarFridge()
+})
+
+watch(
+  isAuthenticated,
+  (newValue) => {
+    if (newValue) {
+      loadSidebarFridge()
+    } else {
+      myItems.value = []
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -64,7 +112,11 @@ onMounted(fetchAllRecipes)
       </div>
 
       <aside class="w-72 flex-shrink-0">
-        <FridgeSidebar :items="myItems" @delete-item="handleDeleteItem" />
+        <FridgeSidebar
+          :items="myItems"
+          @delete-item="handleDeleteItem"
+          @generate-ai-recipe="fetchAiRecommendations"
+        />
       </aside>
     </div>
 
