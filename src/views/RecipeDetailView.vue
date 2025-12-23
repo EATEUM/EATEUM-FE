@@ -1,79 +1,128 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
-
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import RecipePlayer from '@/components/recipe/RecipePlayer.vue'
 import RecipeInfoCard from '@/components/recipe/RecipeInfoCard.vue'
 import RecipeSteps from '@/components/recipe/RecipeSteps.vue'
 import Memo from '@/components/memo/Memo.vue'
 import RecipeTimer from '@/components/recipe/RecipeTimer.vue'
-import RelatedVideos from '@/components/recipe/RelateVideos.vue'
+import RelatedVideos from '@/components/recipe/RelatedVideos.vue'
+import recipeApi from '@/api/recipeApi.js'
 
+const authStore = useAuthStore()
 const route = useRoute()
-const recipeData = ref(null)
+const router = useRouter()
+
+const recipeData = ref({
+  recipeVideoId: null,
+  videoTitle: '',
+  videoUrl: '',
+  relatedVideos: [],
+  steps: [],
+  memos: [],
+  isLiked: false,
+  isCompleted: false,
+})
 const isLoading = ref(true)
 
-// MOCK: 마이페이지 모드 여부
-const isMyPageMode = computed(() => true) // 실제 로직에 맞게 수정 필요 (예: route.query.mode === 'my')
+const videoEmbedUrl = computed(() => {
+  const url = recipeData.value.videoUrl
+  if (!url) return ''
+
+  let id = ''
+  if (url.includes('v=')) {
+    id = url.split('v=')[1].split('&')[0]
+  } else if (url.includes('youtu.be/')) {
+    id = url.split('youtu.be/')[1].split('?')[0]
+  }
+
+  return `https://www.youtube.com/embed/${id}`
+})
+
+const isMyPageMode = computed(() => route.query.mode === 'my')
 
 const fetchRecipeDetail = async () => {
   isLoading.value = true
+  const recipeVideoId = route.query.recipeVideoId
+
   try {
-    // API 호출 로직 해야 함
-    const response = {
-      success: true,
-      data: {
-        recipeVideoId: 1,
-        videoTitle: '한국 길거리 음식 NO.1 떡볶이',
-        videoUrl: 'https://www.youtube.com/embed/t4Es8mwdYlE',
-        duration: '12:56',
-        isLiked: false,
-        isCompleted: false,
-        steps: [
-          { stepNumber: 1, stepTitle: '재료 준비', content: '양파와 파를 손질합니다...' },
-          { stepNumber: 2, stepTitle: '소스 만들기', content: '냄비에 물 1L, 간장 1/3컵...' },
-        ],
-        relatedVideos: [
-          {
-            recipeVideoId: 4,
-            videoTitle: '[어남선생] 떡볶이 레시피',
-            thumbnailUrl: 'https://img.youtube.com/vi/xtW8mjglyfY/maxresdefault.jpg',
-            duration: '15:20',
-          },
-        ],
-        memos: [
-          {
-            memo_id: 10,
-            content: '관찰레 대신 베이컨 써도 될까요?',
-            created_at: '2025-12-05 14:30:00',
-          },
-        ],
-      },
+    const response = await recipeApi.getRecipeDetail(recipeVideoId, isMyPageMode.value)
+    if (response.data.success) {
+      recipeData.value = response.data.data
     }
-    recipeData.value = response.data
+  } catch (error) {
+    console.error('상세 정보 로드 실패:', error)
   } finally {
     isLoading.value = false
   }
 }
 
-const handleToggleLike = () => {
-  if (recipeData.value) recipeData.value.isLiked = !recipeData.value.isLiked
+const handleToggleLike = async () => {
+  if (!authStore.user) {
+    if (confirm('로그인 후 이용 가능한 서비스입니다.\n로그인 페이지로 이동하시겠습니까?')) {
+      router.push({ name: 'Login' })
+    }
+    return
+  }
+
+  if (!recipeData.value) return
+
+  try {
+    const response = await recipeApi.buttonLike(recipeData.value.recipeVideoId)
+    if (response.data.success) {
+      recipeData.value.isLiked = !recipeData.value.isLiked
+    }
+  } catch (error) {
+    console.error('좋아요 처리 실패:', error)
+  }
 }
 
-const handleToggleComplete = () => {
-  if (recipeData.value) recipeData.value.isCompleted = !recipeData.value.isCompleted
+const handleToggleComplete = async () => {
+  if (!authStore.user) {
+    alert('로그인 후 이용 가능한 서비스입니다.')
+    return
+  }
+
+  if (!recipeData.value) return
+
+  try {
+    const response = await recipeApi.buttonComplete(recipeData.value.recipeVideoId)
+    if (response.data.success) {
+      recipeData.value.isCompleted = !recipeData.value.isCompleted
+    }
+  } catch (error) {
+    console.error('완료 처리 실패:', error)
+    alert('완료 처리에 실패했습니다.')
+  }
 }
 
-const handleAddMemo = (text) => {
-  // API 호출 후 로컬 상태 업데이트 로직 추가
-  console.log('Add memo:', text)
+const handleAddMemo = async (text) => {
+  try {
+    const response = await recipeApi.createMemo(recipeData.value.recipeVideoId, text)
+    if (response.data.success) {
+      recipeData.value.memos.push(response.data.data)
+    }
+  } catch (error) {
+    console.error('메모 등록 실패:', error)
+  }
 }
 
-const handleDeleteMemo = (id) => {
-  // API 호출 후 로컬 상태 업데이트 로직 추가
-  console.log('Delete memo:', id)
-}
+const handleDeleteMemo = async (memoId) => {
+  if (!confirm('메모를 삭제하시겠습니까?')) return
 
+  try {
+    const recipeId = recipeData.value.recipeVideoId
+    const response = await recipeApi.deleteMemo(recipeId, memoId)
+
+    if (response.data.success) {
+      recipeData.value.memos = recipeData.value.memos.filter((m) => m.memoId !== memoId)
+    }
+  } catch (error) {
+    console.error('메모 삭제 실패:', error)
+    alert('메모 삭제에 실패했습니다.')
+  }
+}
 onMounted(fetchRecipeDetail)
 </script>
 
@@ -81,7 +130,7 @@ onMounted(fetchRecipeDetail)
   <div v-if="!isLoading" class="min-h-screen bg-[#F5F5F2] px-6 py-10 font-sans">
     <div class="mx-auto flex max-w-[1080px] flex-col gap-6 lg:flex-row">
       <section class="flex-1 space-y-6">
-        <RecipePlayer :url="recipeData.videoUrl" />
+        <RecipePlayer :url="videoEmbedUrl" />
 
         <RecipeInfoCard
           :title="recipeData.videoTitle"
@@ -111,5 +160,11 @@ onMounted(fetchRecipeDetail)
         </div>
       </aside>
     </div>
+  </div>
+
+  <div v-else class="flex min-h-screen items-center justify-center">
+    <div
+      class="h-10 w-10 animate-spin rounded-full border-4 border-amber-500 border-t-transparent"
+    ></div>
   </div>
 </template>

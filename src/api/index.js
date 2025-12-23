@@ -2,7 +2,7 @@ import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
 
 const api = axios.create({
-  baseURL: 'http://localhost:8080/',
+  baseURL: '/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -68,6 +68,9 @@ api.interceptors.response.use(
         return api(originalRequest)
       } catch (refreshError) {
         processQueue(refreshError, null)
+        authStore.logout()
+        alert('로그인 세션이 만료되었습니다. 다시 로그인해주세요.')
+        window.location.href = '/login'
         return Promise.reject(refreshError)
       } finally {
         isRefreshing = false

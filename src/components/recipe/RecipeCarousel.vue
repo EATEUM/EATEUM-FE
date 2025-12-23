@@ -10,31 +10,45 @@ defineProps({
   isAiSection: { type: Boolean, default: false },
 })
 
-const plugin = Autoplay({ delay: 6000, stopOnInteraction: true })
+const plugin = Autoplay({ delay: 4000, stopOnInteraction: true })
 </script>
 
 <template>
-  <section class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+  <section class="group/section relative rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
     <div class="mb-4">
       <h2 class="text-xl font-bold text-gray-900">{{ title }}</h2>
       <p v-if="description" class="mt-1 text-sm text-gray-500">{{ description }}</p>
     </div>
 
     <Carousel
-      :opts="{ align: 'start', loop: true, slidesToScroll: 3, duration: 30 }"
+      :opts="{ align: 'start', loop: true, slidesToScroll: 1, duration: 30 }"
       :plugins="[plugin]"
-      class="group relative w-full"
+      class="w-full"
     >
       <CarouselContent class="-ml-4">
-        <CarouselItem v-for="recipe in recipes" :key="recipe.recipeVideoId" class="basis-1/3 pl-4">
-          <RecipeCard :isAiRecommended="isAiSection" v-bind="recipe" />
+        <CarouselItem
+          v-for="recipe in recipes"
+          :key="recipe.recipeVideoId"
+          class="basis-full pl-4 md:basis-1/2 lg:basis-1/3"
+        >
+          <RecipeCard
+            :isAiRecommended="isAiSection"
+            :recipeVideoId="recipe.recipeVideoId"
+            :videoTitle="recipe.videoTitle"
+            :thumbnailUrl="recipe.thumbnailUrl"
+            :videoUrl="recipe.videoUrl"
+            :duration="recipe.duration"
+            :viewCount="recipe.viewCount"
+          />
         </CarouselItem>
       </CarouselContent>
+
       <CarouselPrevious
-        class="absolute top-1/2 -left-4 z-20 h-8 w-8 -translate-y-1/2 border-gray-100 bg-white/90 text-gray-800 opacity-0 shadow-md transition-opacity group-hover:opacity-100 hover:bg-white"
+        class="-left-4 hidden h-11 w-11 border-gray-200 bg-white/90 text-gray-600 shadow-md backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600 active:scale-95 md:flex"
       />
+
       <CarouselNext
-        class="absolute top-1/2 -right-4 z-20 h-8 w-8 -translate-y-1/2 border-gray-100 bg-white/90 text-gray-800 opacity-0 shadow-md transition-opacity group-hover:opacity-100 hover:bg-white"
+        class="-right-4 hidden h-11 w-11 border-gray-200 bg-white/90 text-gray-600 shadow-md backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600 active:scale-95 md:flex"
       />
     </Carousel>
   </section>

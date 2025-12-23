@@ -1,45 +1,42 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-// 프로젝트 에셋 폴더의 기본 프로필 이미지 임포트
 import defaultProfileImg from '@/assets/userProfileDefault.png'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
-/**
- * 이미지 로드 에러 처리
- * 사용자가 설정한 프로필 이미지를 불러오지 못할 경우 기본 이미지로 대체합니다.
- */
 const handleImageError = (e) => {
   e.target.src = defaultProfileImg
 }
 </script>
 
 <template>
-  <section class="w-full p-6 bg-white rounded-xl shadow-sm border border-stone-200">
-    <div class="flex justify-between items-center">
+  <section class="w-full rounded-xl border border-stone-200 bg-white p-6 shadow-sm">
+    <div class="flex items-center justify-between">
       <div class="flex items-center gap-6">
-        <div class="w-24 h-24 rounded-full overflow-hidden bg-stone-100 flex items-center justify-center border border-stone-100">
-          <img 
-            :src="authStore.user?.profileImage || defaultProfileImg" 
-            alt="Profile" 
-            class="w-full h-full object-cover" 
+        <div
+          class="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-stone-100 bg-stone-100"
+        >
+          <img
+            :src="authStore.user?.profileImage || defaultProfileImg"
+            alt="Profile"
+            class="h-full w-full object-cover"
             @error="handleImageError"
           />
         </div>
         <div class="flex flex-col">
-          <h2 class="text-stone-700 text-2xl font-bold">
+          <h2 class="text-2xl font-bold text-stone-700">
             {{ authStore.user?.nickname || authStore.user?.name || '요리하는미식가' }}
           </h2>
-          <p class="text-neutral-500 text-base font-normal">
+          <p class="text-base font-normal text-neutral-500">
             {{ authStore.user?.email || 'welcome@eateum.com' }}
           </p>
         </div>
       </div>
-      <button 
+      <button
         @click="router.push('/profile-edit')"
-        class="h-10 px-5 bg-[#FFE8A3] rounded-lg text-stone-700 text-sm font-bold transition-all hover:bg-[#ffd65a]"
+        class="h-10 rounded-lg bg-[#FFE8A3] px-5 text-sm font-bold text-stone-700 transition-all hover:bg-[#ffd65a]"
       >
         프로필 수정
       </button>

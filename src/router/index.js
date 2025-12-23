@@ -13,7 +13,7 @@ import { useAuthStore } from '@/stores/auth.js'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    { path: '/login', component: LoginView },
+    { path: '/login', name: 'Login', component: LoginView },
     { path: '/signup', component: SignUpView },
     {
       path: '/profile-edit',
@@ -45,6 +45,7 @@ const router = createRouter({
     },
     {
       path: '/recipe-detail',
+      name: 'RecipeDetail',
       component: RecipeDetailView,
     },
     {
@@ -52,8 +53,8 @@ const router = createRouter({
       component: FindAccountView,
     },
     {
-      path: '/mypage',
-      name: 'mypage',
+      path: '/my',
+      name: 'my',
       component: MyPageView,
     },
   ],

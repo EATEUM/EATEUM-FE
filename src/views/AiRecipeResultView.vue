@@ -1,134 +1,33 @@
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { Card, CardContent } from '@/components/ui/card'
 import RecipeCard from '@/components/recipe/RecipeCard.vue'
+import recipeApi from '@/api/recipeApi'
 
-// mock 데이터
-const recipeResponse = {
-  success: true,
-  data: [
-    {
-      recipeVideoId: 29,
-      videoTitle: '[연어장]\n이렇게 간단해도 되나요?',
-      thumbnailUrl: 'https://img.youtube.com/vi/6bWw8Vr-DA4/maxresdefault.jpg',
-      videoUrl: 'https://www.youtube.com/watch?v=6bWw8Vr-DA4',
-      duration: '08:50',
-      viewCount: 1200000,
-      items: [
-        { itemId: 159, itemName: '연어' },
-        { itemId: 3, itemName: '간장' },
-        { itemId: 17, itemName: '양파' },
-      ],
-    },
-    {
-      recipeVideoId: 55,
-      videoTitle: '[이연복]\n고추 잡채',
-      thumbnailUrl: 'https://img.youtube.com/vi/sFLGovdEBr4/maxresdefault.jpg',
-      videoUrl: 'https://www.youtube.com/watch?v=sFLGovdEBr4',
-      duration: '14:20',
-      viewCount: 1400000,
-      items: [
-        { itemId: 53, itemName: '소고기' },
-        { itemId: 33, itemName: '피망' },
-        { itemId: 49, itemName: '표고버섯' },
-      ],
-    },
-    {
-      recipeVideoId: 37,
-      videoTitle: '감자 2개로!!\n초초간단 감자 그라탕!',
-      thumbnailUrl: 'https://img.youtube.com/vi/k3rpJlK8z9o/maxresdefault.jpg',
-      videoUrl: 'https://youtu.be/k3rpJlK8z9o',
-      duration: '07:50',
-      viewCount: 320000,
-      items: [
-        { itemId: 14, itemName: '감자' },
-        { itemId: 83, itemName: '치즈' },
-        { itemId: 107, itemName: '베이컨' },
-      ],
-    },
-    {
-      recipeVideoId: 43,
-      videoTitle: '[이연복]\n3분 마파두부',
-      thumbnailUrl: 'https://img.youtube.com/vi/I0UXgqBoIEQ/maxresdefault.jpg',
-      videoUrl: 'https://www.youtube.com/watch?v=I0UXgqBoIEQ',
-      duration: '08:15',
-      viewCount: 1900000,
-      items: [
-        { itemId: 104, itemName: '두부' },
-        { itemId: 19, itemName: '파' },
-        { itemId: 151, itemName: '두반장' },
-      ],
-    },
-    {
-      recipeVideoId: 6,
-      videoTitle: '든든한 가츠동',
-      thumbnailUrl: 'https://img.youtube.com/vi/WmjbwOI0HbU/maxresdefault.jpg',
-      videoUrl: 'https://youtu.be/WmjbwOI0HbU',
-      duration: '09:45',
-      viewCount: 1200000,
-      items: [
-        { itemId: 52, itemName: '돼지고기' },
-        { itemId: 54, itemName: '달걀' },
-        { itemId: 147, itemName: '밥' },
-      ],
-    },
-    {
-      recipeVideoId: 23,
-      videoTitle: '포테이토 스프',
-      thumbnailUrl: 'https://img.youtube.com/vi/zf7JX7d9PK0/maxresdefault.jpg',
-      videoUrl: 'https://www.youtube.com/watch?v=zf7JX7d9PK0',
-      duration: '07:30',
-      viewCount: 650000,
-      items: [
-        { itemId: 14, itemName: '감자' },
-        { itemId: 110, itemName: '버터' },
-        { itemId: 56, itemName: '우유' },
-      ],
-    },
-    {
-      recipeVideoId: 42,
-      videoTitle: '[이연복]\n중국집 짜장면',
-      thumbnailUrl: 'https://img.youtube.com/vi/tQUTkWfHdO8/maxresdefault.jpg',
-      videoUrl: 'https://www.youtube.com/watch?v=tQUTkWfHdO8',
-      duration: '15:40',
-      viewCount: 3500000,
-      items: [
-        { itemId: 169, itemName: '춘장' },
-        { itemId: 17, itemName: '양파' },
-        { itemId: 152, itemName: '애호박' },
-      ],
-    },
-    {
-      recipeVideoId: 53,
-      videoTitle: '절대 불지 않는 잡채',
-      thumbnailUrl: 'https://img.youtube.com/vi/vqb3WyZmL_8/maxresdefault.jpg',
-      videoUrl: 'https://www.youtube.com/watch?v=vqb3WyZmL_8',
-      duration: '22:10',
-      viewCount: 3200000,
-      items: [
-        { itemId: 16, itemName: '당면' },
-        { itemId: 31, itemName: '당근' },
-        { itemId: 36, itemName: '부추' },
-      ],
-    },
-    {
-      recipeVideoId: 25,
-      videoTitle: '돈 안아까운 샐러드볼',
-      thumbnailUrl: 'https://img.youtube.com/vi/kD0M6_os6LQ/maxresdefault.jpg',
-      videoUrl: 'https://youtu.be/kD0M6_os6LQ',
-      duration: '15:40',
-      viewCount: 920000,
-      items: [
-        { itemId: 39, itemName: '양배추' },
-        { itemId: 35, itemName: '토마토' },
-        { itemId: 61, itemName: '새우' },
-      ],
-    },
-  ],
+const recipes = ref([])
+const hoveredRecipeId = ref(null)
+const isLoading = ref(false)
+
+const fetchAiRecipes = async () => {
+  isLoading.value = true
+  try {
+    const res = await recipeApi.getAiRecommendations([])
+
+    console.log('AI API Response:', res)
+
+    if (res.data && res.data.success) {
+      recipes.value = res.data.data.map((r) => ({ ...r, isAiRecommended: true }))
+
+      if (recipes.value.length > 0) {
+        hoveredRecipeId.value = recipes.value[0].recipeVideoId
+      }
+    }
+  } catch (error) {
+    console.error('AI 추천 레시피 로드 실패:', error)
+  } finally {
+    isLoading.value = false
+  }
 }
-
-const recipes = ref(recipeResponse.data.map((r) => ({ ...r, isAiRecommended: true })))
-const hoveredRecipeId = ref(recipes.value[0].recipeVideoId)
 
 const setHoveredRecipe = (id) => {
   hoveredRecipeId.value = id
@@ -142,11 +41,16 @@ const setHoveredRecipe = (id) => {
     parent.scrollTo({ top, behavior: 'smooth' })
   })
 }
+
+onMounted(fetchAiRecipes)
 </script>
 
 <template>
-  <div class="flex min-h-screen px-10 py-14">
-    <div class="mx-auto flex max-w-[1280px] justify-between gap-8">
+  <div class="flex min-h-screen bg-gray-50/30 px-10 py-14">
+    <div
+      v-if="!isLoading && recipes.length > 0"
+      class="mx-auto flex max-w-[1280px] justify-between gap-8"
+    >
       <section class="flex-1 space-y-8">
         <div>
           <h1 class="text-3xl font-extrabold tracking-tight text-gray-900">🧑🏻‍🍳 AI 추천 레시피</h1>
@@ -154,14 +58,10 @@ const setHoveredRecipe = (id) => {
             나의 재료로 만들 수 있는 레시피가 업데이트 되었습니다.
           </p>
         </div>
-        <div 
-          class="grid justify-start gap-3 rounded-2xl bg-white p-6"
-          style="
-            display: grid;
-            grid-template-columns: repeat(3, 240px);
-            gap: 1.5rem;
-            width: max-content;
-          "
+
+        <div
+          class="grid justify-start gap-6 rounded-2xl"
+          style="grid-template-columns: repeat(3, 240px); width: max-content"
         >
           <RecipeCard
             v-for="recipe in recipes"
@@ -169,10 +69,10 @@ const setHoveredRecipe = (id) => {
             v-bind="recipe"
             @mouseenter="setHoveredRecipe(recipe.recipeVideoId)"
             :class="[
-              'h-full cursor-pointer transition-all duration-300',
+              'h-full cursor-pointer overflow-hidden rounded-xl bg-white transition-all duration-300',
               hoveredRecipeId === recipe.recipeVideoId
-                ? 'z-10 scale-[1.02] shadow-lg'
-                : 'opacity-95 hover:opacity-100',
+                ? 'z-10 scale-[1.02] shadow-xl ring-2 ring-[#FFE8A3]'
+                : 'opacity-90 shadow-sm hover:opacity-100',
             ]"
           />
         </div>
@@ -180,7 +80,7 @@ const setHoveredRecipe = (id) => {
 
       <section class="w-[340px] shrink-0 pt-[84px]">
         <Card
-          class="sticky top-10 flex h-[calc(100vh-120px)] flex-col rounded-2xl border-none bg-white p-6 shadow-[0_10px_40px_rgba(0,0,0,0.04)]"
+          class="sticky top-10 flex h-[calc(100vh-120px)] flex-col rounded-3xl border-none bg-white p-6 shadow-[0_10px_40px_rgba(0,0,0,0.04)]"
         >
           <header class="mb-6 space-y-1 px-2">
             <h2 class="text-xl font-bold tracking-tight text-gray-900">이 요리에 사용된 재료 🥕</h2>
@@ -198,7 +98,7 @@ const setHoveredRecipe = (id) => {
               :key="recipe.recipeVideoId"
               :id="`ingredient-${recipe.recipeVideoId}`"
               @click="setHoveredRecipe(recipe.recipeVideoId)"
-              class="rounded-2xl border border-transparent bg-[#F8F8F5] p-4 transition-all duration-500 cursor-pointer"
+              class="cursor-pointer rounded-2xl border border-transparent p-4 transition-all duration-500"
               :class="[
                 hoveredRecipeId === recipe.recipeVideoId
                   ? '-translate-y-1 border-[#FFE082]/20 bg-[#FFE8A3] opacity-100 shadow-md'
@@ -206,7 +106,7 @@ const setHoveredRecipe = (id) => {
               ]"
             >
               <h3 class="mb-3 line-clamp-1 text-[14px] font-bold text-gray-800">
-                {{ recipe.videoTitle.replace(/(\/n|\\n)/g, ' ') }}
+                {{ recipe.videoTitle }}
               </h3>
               <div class="flex flex-wrap gap-2">
                 <span
@@ -221,6 +121,15 @@ const setHoveredRecipe = (id) => {
           </CardContent>
         </Card>
       </section>
+    </div>
+
+    <div v-else-if="isLoading" class="flex flex-1 items-center justify-center">
+      <div class="h-12 w-12 animate-spin rounded-full border-b-2 border-[#FFE8A3]"></div>
+    </div>
+
+    <div v-else class="flex flex-1 flex-col items-center justify-center text-gray-400">
+      <p class="text-lg font-medium">추천할 수 있는 레시피가 없습니다.</p>
+      <p class="text-sm">냉장고에 재료를 더 채워보세요!</p>
     </div>
   </div>
 </template>

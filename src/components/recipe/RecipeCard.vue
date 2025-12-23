@@ -42,7 +42,8 @@ const youtubeEmbedUrl = computed(() => {
 </script>
 
 <template>
-  <div
+  <router-link
+    :to="{ name: 'RecipeDetail', query: { recipeVideoId: props.recipeVideoId } }"
     class="group/card flex h-[240px] w-[240px] flex-none cursor-pointer flex-col overflow-hidden rounded-xl border border-gray-100 bg-white transition-all duration-300"
     :title="videoTitle"
     @mouseenter="isHovered = true"
@@ -77,7 +78,7 @@ const youtubeEmbedUrl = computed(() => {
 
     <div class="flex flex-1 flex-col bg-[#F8F8F5] p-3">
       <div
-        class="mb-2 line-clamp-2 h-[44px] text-[14px] leading-snug font-bold text-gray-900 transition-colors"
+        class="mb-2 line-clamp-2 h-[44px] text-[14px] leading-snug font-bold whitespace-pre-wrap text-gray-900 transition-colors"
       >
         {{ cleanTitle }}
       </div>
@@ -86,5 +87,5 @@ const youtubeEmbedUrl = computed(() => {
         <span>조회수 {{ formattedViewCount }}</span>
       </div>
     </div>
-  </div>
+  </router-link>
 </template>
