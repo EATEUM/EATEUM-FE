@@ -47,7 +47,7 @@ export default {
   },
 
   // 메모 삭제
-  deleteMemo(memoId) {
-    return api.delete(`${BASE_URL}/${memoId}`)
+  deleteMemo(recipeVideoId, memoId) {
+    return api.delete(`${BASE_URL}/${recipeVideoId}/memo/${memoId}`)
   },
 }
