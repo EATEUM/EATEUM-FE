@@ -9,16 +9,19 @@ const isDropdownOpen = ref(false);
 const fileInput = ref(null);
 
 const emit = defineEmits(['add-item', 'image-selected']);
-
 let searchTimer = null;
 
-// 실시간 검색 로직 (백엔드 로그와 일치하는 API 호출)
+// 한글 입력 시 조합 중에도 즉시 값을 가로채기 위해 e.target.value 사용
 const onInput = (e) => {
-  searchQuery.value = e.target.value;
+  const val = e.target.value;
+  searchQuery.value = val; // 즉시 반영
+
   if (searchTimer) clearTimeout(searchTimer);
-  const val = searchQuery.value.trim();
   
-  if (val.length < 1) {
+  const trimmedVal = val.trim();
+  
+  // 한 글자라도 입력되면 검색 시작 (기존 < 1 유지)
+  if (trimmedVal.length < 1) {
     searchResults.value = [];
     isDropdownOpen.value = false;
     return;
@@ -26,25 +29,30 @@ const onInput = (e) => {
 
   searchTimer = setTimeout(async () => {
     try {
-      // 백엔드 컨트롤러의 /fridges/search API 호출
+      // 검색 시점의 최신 값을 전달
       const res = await axios.get('http://localhost:8080/fridges/search', {
-        params: { keyword: val }
+        params: { keyword: trimmedVal }
       });
-      if (res.data.success) {
+      
+      if (res.data.success && searchQuery.value.trim() !== '') {
         searchResults.value = res.data.data;
-        // 결과가 있을 때만 드롭다운을 엽니다.
         isDropdownOpen.value = searchResults.value.length > 0;
       }
     } catch (err) {
       console.error("검색 실패:", err);
     }
-  }, 150);
+  }, 100);
 };
 
 const selectItem = (item) => {
-  emit('add-item', item.itemId);
-  searchQuery.value = '';
+  if (searchTimer) clearTimeout(searchTimer);
+  
+  const itemToAdd = { ...item }; 
   isDropdownOpen.value = false;
+  searchQuery.value = '';
+  searchResults.value = [];
+  
+  emit('add-item', itemToAdd);
 };
 
 const triggerFileInput = () => {
@@ -77,8 +85,7 @@ const handleFileChange = (e) => {
       <button 
         @click="triggerFileInput"
         type="button"
-        title="AI 이미지로 재료 추가"
-        class="h-[60px] w-[60px] flex items-center justify-center rounded-2xl bg-[#F1C232] shadow-[0px_4px_12px_rgba(251,191,36,0.4)] hover:bg-amber-500 hover:scale-105 active:scale-95 transition-all duration-200 group"
+        class="h-[60px] w-[60px] flex items-center justify-center rounded-2xl bg-[#F1C232] shadow-[0px_4px_12px_rgba(251,191,36,0.4)] hover:bg-amber-50 hover:scale-105 active:scale-95 transition-all duration-200 group"
       >
         <Camera class="w-7 h-7 text-white group-hover:rotate-12 transition-transform" />
       </button>
@@ -86,7 +93,7 @@ const handleFileChange = (e) => {
       <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="handleFileChange" />
     </div>
 
-    <ul v-if="isDropdownOpen" class="absolute w-full mt-3 bg-white border border-stone-100 rounded-2xl shadow-2xl z-[100] overflow-hidden">
+    <ul v-if="isDropdownOpen && searchResults.length > 0" class="absolute w-full mt-3 bg-white border border-stone-100 rounded-2xl shadow-2xl z-[100] overflow-hidden">
       <li 
         v-for="res in searchResults" :key="res.itemId"
         @mousedown.prevent="selectItem(res)" 

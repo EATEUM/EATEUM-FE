@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { Card, CardContent } from '@/components/ui/card'
 import RecipeCard from '@/components/recipe/RecipeCard.vue'
 
-// mock
+// mock 데이터
 const recipeResponse = {
   success: true,
   data: [
@@ -127,10 +127,7 @@ const recipeResponse = {
   ],
 }
 
-// 뱃지
 const recipes = ref(recipeResponse.data.map((r) => ({ ...r, isAiRecommended: true })))
-
-// 영상 호버시 우측 스크롤
 const hoveredRecipeId = ref(recipes.value[0].recipeVideoId)
 
 const setHoveredRecipe = (id) => {
@@ -157,7 +154,6 @@ const setHoveredRecipe = (id) => {
             나의 재료로 만들 수 있는 레시피가 업데이트 되었습니다.
           </p>
         </div>
-        <!--  여기 css 건들이지 마세요! 비율 다 맞춰놨습니다-->
         <div 
           class="grid justify-start gap-3 rounded-2xl bg-white p-6"
           style="
@@ -201,7 +197,8 @@ const setHoveredRecipe = (id) => {
               v-for="recipe in recipes"
               :key="recipe.recipeVideoId"
               :id="`ingredient-${recipe.recipeVideoId}`"
-              class="rounded-2xl border border-transparent bg-[#F8F8F5] p-4 transition-all duration-500"
+              @click="setHoveredRecipe(recipe.recipeVideoId)"
+              class="rounded-2xl border border-transparent bg-[#F8F8F5] p-4 transition-all duration-500 cursor-pointer"
               :class="[
                 hoveredRecipeId === recipe.recipeVideoId
                   ? '-translate-y-1 border-[#FFE082]/20 bg-[#FFE8A3] opacity-100 shadow-md'
