@@ -26,10 +26,10 @@ const handleAdd = () => {
     </h2>
 
     <div class="custom-scrollbar flex-1 space-y-4 overflow-y-auto pr-2">
-      <div v-for="memo in memos" :key="memo.memo_id" class="group flex flex-col items-end">
+      <div v-for="memo in memos" :key="memo.memoId" class="group flex flex-col items-end">
         <div class="flex max-w-full items-start gap-2">
           <button
-            @click="$emit('deleteMemo', memo.memo_id)"
+            @click="$emit('deleteMemo', memo.memoId)"
             class="mt-1 rounded-full p-1 text-gray-400 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-gray-100 hover:text-rose-500"
             title="메모 삭제"
           >
@@ -42,8 +42,9 @@ const handleAdd = () => {
             {{ memo.content }}
           </div>
         </div>
+
         <span class="mt-1 text-[10px] font-bold text-gray-400">
-          {{ memo.created_at.split(' ')[1] }}
+          {{ memo.createdAt ? memo.createdAt.split(' ')[1]?.substring(0, 5) : '00:00' }}
         </span>
       </div>
     </div>
@@ -66,16 +67,3 @@ const handleAdd = () => {
     </div>
   </Card>
 </template>
-
-<style scoped>
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #e5e7eb;
-  border-radius: 10px;
-}
-.custom-scrollbar:hover::-webkit-scrollbar-thumb {
-  background: #ffe082;
-}
-</style>
