@@ -56,9 +56,10 @@ export const useAuthStore = defineStore(
         api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`
         await getMyInfo()
 
-        // 로그인 성공 시 비회원 채팅 초기화
+        // 로그인 성공 시 비회원 채팅 초기화 및 채팅창 닫기
         const chatbotStore = useChatbotStore()
-        chatbotStore.reset()
+        chatbotStore.close() // 채팅창 닫기
+        chatbotStore.reset() // 채팅 데이터 초기화
 
         return true
       } catch (error) {

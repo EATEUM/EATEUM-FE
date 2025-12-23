@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
+import { alertWarning } from '@/composables/useAlert'
 
 const instance = axios.create({
   baseURL: 'http://localhost:8080',
@@ -25,8 +26,10 @@ instance.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       const authStore = useAuthStore()
-      alert('세션이 만료되었습니다. 다시 로그인해주세요.')
-      authStore.logout()
+      alertWarning('세션이 만료되었습니다. 다시 로그인해주세요.', {
+        title: '세션 만료',
+        onConfirm: () => authStore.logout()
+      })
     }
     return Promise.reject(error)
   },
