@@ -4,6 +4,19 @@ import Navbar from './components/layout/Navbar.vue'
 import Footer from './components/layout/Footer.vue'
 import ChatbotAside from '@/components/chat/ChatbotAside.vue'
 import ChatbotButton from '@/components/chat/ChatbotButton.vue'
+import AlertDialog from '@/components/common/AlertDialog.vue'
+import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
+import { useAlert } from '@/composables/useAlert'
+
+const {
+  alertState,
+  confirmState,
+  closeAlert,
+  closeConfirm,
+  handleAlertConfirm,
+  handleConfirmConfirm,
+  handleConfirmCancel
+} = useAlert()
 </script>
 
 <template>
@@ -18,6 +31,28 @@ import ChatbotButton from '@/components/chat/ChatbotButton.vue'
     <ChatbotAside />
     <ChatbotButton />
     <Footer />
+
+    <!-- 전역 Alert/Confirm 다이얼로그 -->
+    <AlertDialog
+      :is-open="alertState.isOpen"
+      :type="alertState.type"
+      :title="alertState.title"
+      :message="alertState.message"
+      :confirm-text="alertState.confirmText"
+      @close="closeAlert"
+      @confirm="handleAlertConfirm"
+    />
+    <ConfirmDialog
+      :is-open="confirmState.isOpen"
+      :type="confirmState.type"
+      :title="confirmState.title"
+      :message="confirmState.message"
+      :confirm-text="confirmState.confirmText"
+      :cancel-text="confirmState.cancelText"
+      @close="closeConfirm"
+      @confirm="handleConfirmConfirm"
+      @cancel="handleConfirmCancel"
+    />
   </div>
 </template>
 
