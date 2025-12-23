@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import userApi from '@/api/userApi'
 import api from '@/api/index'
+import { useChatbotStore } from './chatbotStore'
 
 export const useAuthStore = defineStore(
   'auth',
@@ -54,6 +55,11 @@ export const useAuthStore = defineStore(
         accessToken.value = newAccessToken
         api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`
         await getMyInfo()
+
+        // 로그인 성공 시 비회원 채팅 초기화
+        const chatbotStore = useChatbotStore()
+        chatbotStore.reset()
+
         return true
       } catch (error) {
         throw error
@@ -69,6 +75,10 @@ export const useAuthStore = defineStore(
         user.value = null
         isPasswordVerified.value = false
         delete api.defaults.headers.common['Authorization']
+
+        // 로그아웃 시 채팅 초기화
+        const chatbotStore = useChatbotStore()
+        chatbotStore.reset()
 
         window.location.href = '/'
       }
