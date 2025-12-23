@@ -118,16 +118,17 @@ const handleDeleteMemo = async (memoId) => {
   if (!shouldDelete) return
 
   try {
-    const response = await recipeApi.deleteMemo(memoId)
+    const recipeId = recipeData.value.recipeVideoId
+    const response = await recipeApi.deleteMemo(recipeId, memoId)
+
     if (response.data.success) {
-      recipeData.value.memos = recipeData.value.memos.filter((m) => m.memo_id !== memoId)
+      recipeData.value.memos = recipeData.value.memos.filter((m) => m.memoId !== memoId)
     }
   } catch (error) {
     console.error('메모 삭제 실패:', error)
     alert('메모 삭제에 실패했습니다.', { title: '삭제 실패' })
   }
 }
-
 onMounted(fetchRecipeDetail)
 </script>
 

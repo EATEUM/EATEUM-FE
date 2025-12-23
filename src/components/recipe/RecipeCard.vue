@@ -78,7 +78,7 @@ const youtubeEmbedUrl = computed(() => {
 
     <div class="flex flex-1 flex-col bg-[#F8F8F5] p-3">
       <div
-        class="mb-2 line-clamp-2 h-[44px] text-[14px] leading-snug font-bold text-gray-900 transition-colors"
+        class="mb-2 line-clamp-2 h-[44px] text-[14px] leading-snug font-bold whitespace-pre-wrap text-gray-900 transition-colors"
       >
         {{ cleanTitle }}
       </div>

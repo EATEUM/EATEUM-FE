@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import RecipeCarousel from '@/components/recipe/RecipeCarousel.vue' // 컴포넌트 이름 확인
+import RecipeCarousel from '@/components/recipe/RecipeCarousel.vue'
 import FridgeSidebar from '@/components/fridge/FridgeSidebar.vue'
 import recipeApi from '@/api/recipeApi'
 import fridgeApi from '@/api/fridgeApi'
@@ -87,10 +87,14 @@ watch(
 )
 </script>
 
+<
 <template>
-  <div class="min-h-screen p-8">
-    <div v-if="!isLoading" class="mx-auto flex max-w-[1120px] items-start gap-8">
-      <div class="min-w-0 flex-1 space-y-8">
+  <div class="min-h-screen p-4 md:p-8">
+    <div
+      v-if="!isLoading"
+      class="mx-auto flex max-w-[1120px] flex-col items-start gap-8 lg:flex-row"
+    >
+      <div class="w-full min-w-0 flex-1 space-y-8">
         <RecipeCarousel
           v-if="aiRecommendRecipes.length > 0"
           title="나의 재료로 만드는 AI 추천 레시피"
@@ -111,7 +115,7 @@ watch(
         />
       </div>
 
-      <aside class="w-72 flex-shrink-0">
+      <aside class="w-full flex-shrink-0 lg:w-72">
         <FridgeSidebar
           :items="myItems"
           @delete-item="handleDeleteItem"
