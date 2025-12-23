@@ -42,7 +42,6 @@ const handleRecipeClick = () => {
   }
 
   const selectedItemNames = props.items.map((item) => item.itemName)
-
   emit('generate-recipe', selectedItemNames)
   router.push('/ai-result')
 }
@@ -58,7 +57,7 @@ const handleRecipeClick = () => {
         @click="handleAddClick"
         class="flex items-center gap-1.5 rounded-full bg-[#FFE8A3] px-3 py-1.5 text-xs font-bold text-[#212121] shadow-sm transition-colors hover:bg-[#FFD666]"
       >
-        <span>+</span>추가
+        <span>+</span> 추가
       </button>
     </div>
 

@@ -6,12 +6,12 @@ import { useAuthStore } from '@/stores/auth'
 import FridgeSearchBar from '@/components/fridge/FridgeSearchBar.vue'
 import FridgeItem from '@/components/fridge/FridgeItem.vue'
 import ImageRecognitionModal from '@/components/fridge/ImageModal.vue'
-// [아이콘 변경] 레시피와 요리 본질에 맞는 ChefHat으로 변경
 import { ChefHat } from 'lucide-vue-next'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
+// 상태 정의 (중복 제거)
 const myItems = ref([])
 const currentPage = ref(1)
 const isFetching = ref(false)
@@ -24,6 +24,7 @@ const isAnalyzing = ref(false)
 
 const isMember = computed(() => authStore.isAuthenticated)
 
+// 냉장고 데이터 로드
 const loadMyFridge = async (page = 1) => {
   if (isFetching.value) return
   if (!hasMore.value && page !== 1) return
@@ -56,6 +57,7 @@ const loadMyFridge = async (page = 1) => {
   }
 }
 
+// 무한 스크롤 관찰자
 const observerTarget = ref(null)
 let observer = null
 
@@ -94,6 +96,7 @@ const refreshList = async () => {
   initObserver()
 }
 
+// 이벤트 핸들러
 const handleAddItem = async (item) => {
   if (!isMember.value) {
     if (confirm('로그인이 필요합니다.')) router.push('/login')
@@ -110,7 +113,6 @@ const handleAddItem = async (item) => {
 const handleDeleteItem = async (itemId) => {
   if (!confirm('삭제하시겠습니까?')) return
   try {
-    // 삭제 API 경로 변수 방식 적용
     const res = await axios.delete(`/fridges/${itemId}`) 
     if (res.data.success) await refreshList()
   } catch (err) {
@@ -176,7 +178,6 @@ const handleAddMultipleItems = async (itemIds) => {
               AI 레시피 추천받기
             </span>
           </div>
-
           <div class="absolute inset-x-0 top-0 h-[30%] bg-gradient-to-b from-white/20 to-transparent"></div>
         </button>
       </header>
