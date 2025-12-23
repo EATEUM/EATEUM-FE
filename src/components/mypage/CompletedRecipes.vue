@@ -32,6 +32,7 @@
 
               <img
                 :src="recipe.thumbnailUrl"
+                alt="썸네일"
                 class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
               <div
