@@ -10,10 +10,11 @@ defineProps({
   <Card class="rounded-2xl border-none bg-white p-6 shadow-sm">
     <h2 class="text-md mb-4 font-bold text-gray-800">함께 보면 좋은 인기 요리 영상</h2>
     <div class="space-y-4">
-      <div
+      <router-link
         v-for="video in videos"
         :key="video.recipeVideoId"
-        class="group flex cursor-pointer items-center gap-3"
+        :to="{ name: 'RecipeDetail', query: { recipeVideoId: video.recipeVideoId } }"
+        class="group flex cursor-pointer items-center gap-3 rounded-lg p-1 transition-colors hover:bg-gray-50"
       >
         <div class="relative h-16 w-24 shrink-0 overflow-hidden rounded-xl bg-gray-100">
           <img
@@ -29,7 +30,7 @@ defineProps({
           </h3>
           <p class="text-[11px] font-bold text-gray-400">{{ video.duration }}</p>
         </div>
-      </div>
+      </router-link>
     </div>
   </Card>
 </template>
