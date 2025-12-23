@@ -22,7 +22,7 @@ const isAnalyzing = ref(false);
 
 const isMember = computed(() => authStore.isLoggedIn);
 
-// 데이터 로드 로직 (안정화 버전)
+// 데이터 로드 로직 (구조 유연성 확보)
 const loadMyFridge = async (page = 1) => {
   if (isFetching.value) return;
   if (!hasMore.value && page !== 1) return;
@@ -32,7 +32,9 @@ const loadMyFridge = async (page = 1) => {
     const res = await axios.get('/fridges', { params: { page, size: 20 } });
     if (res.data && res.data.success) {
       const serverData = res.data.data;
-      const fetchedItems = serverData.items || [];
+      
+      // 서버 응답 구조(items, content, list)를 모두 확인하여 안전하게 데이터 추출
+      const fetchedItems = serverData.items || serverData.content || serverData.list || [];
       
       if (page === 1) {
         myItems.value = fetchedItems;
@@ -40,12 +42,17 @@ const loadMyFridge = async (page = 1) => {
         myItems.value = [...myItems.value, ...fetchedItems];
       }
       
+      // 총 개수 업데이트
       totalItems.value = serverData.totalItems || 0; 
       hasMore.value = myItems.value.length < totalItems.value;
       currentPage.value = page;
     }
   } catch (err) {
     console.error("데이터 로드 실패:", err);
+    if (err.response?.status === 401) {
+       alert("세션이 만료되었습니다. 다시 로그인해 주세요.");
+       router.push('/login');
+    }
   } finally {
     isFetching.value = false;
   }
@@ -54,7 +61,7 @@ const loadMyFridge = async (page = 1) => {
 const observerTarget = ref(null);
 let observer = null;
 
-// 무한 스크롤 초기화 (새로고침 시 안정성 확보)
+// 무한 스크롤 감지기 초기화
 const initObserver = () => {
   if (observer) observer.disconnect();
   
@@ -63,7 +70,7 @@ const initObserver = () => {
       loadMyFridge(currentPage.value + 1);
     }
   }, { 
-    rootMargin: '300px', // 사용자가 도착하기 훨씬 전에 미리 불러옵니다.
+    rootMargin: '300px', // 바닥 도착 전에 미리 로드하여 끊김 방지
     threshold: 0 
   });
 
@@ -72,14 +79,12 @@ const initObserver = () => {
 
 onMounted(async () => {
   await loadMyFridge(1);
-  // DOM 업데이트가 완료된 후 관찰을 시작하여 새로고침 이슈를 해결합니다.
-  await nextTick();
+  await nextTick(); // DOM 렌더링 완료 후 관찰 시작
   initObserver();
 });
 
 onUnmounted(() => { if (observer) observer.disconnect(); });
 
-// 목록 새로고침 유틸리티
 const refreshList = async () => {
   hasMore.value = true;
   await loadMyFridge(1);
@@ -128,8 +133,8 @@ const handleAddMultipleItems = async (itemIds) => {
       
       <header class="text-center mb-14 w-full">
         <div class="flex items-center justify-center gap-3 mb-4">
-          <h1 class="text-neutral-900 text-3xl sm:text-[48px] font-black tracking-tight leading-tight">나의 냉장고</h1>
-          <span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-600 text-sm font-bold shadow-sm self-center mt-2">
+          <h1 class="text-neutral-900 text-3xl sm:text-[50px] font-black tracking-tight leading-tight">나의 냉장고</h1>
+          <span class="px-2.5 py-0.5 rounded-full bg-[#FFE8A3] text-[#212121] text-xs sm:text-sm font-semibold shadow-sm self-center mt-2">
             총 {{ totalItems }}개
           </span>
         </div>
@@ -159,7 +164,7 @@ const handleAddMultipleItems = async (itemIds) => {
           <p class="text-amber-600 font-bold text-sm">재료 더 가져오는 중...</p>
         </div>
         <p v-else-if="!hasMore && myItems.length > 0" class="text-stone-400 font-bold text-base">
-          냉장고의 모든 재료가 조회되었습니다.🍽️
+          냉장고의 모든 재료가 조회되었습니다. 🍽️
         </p>
       </div>
     </main>

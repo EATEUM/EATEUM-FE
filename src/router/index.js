@@ -7,6 +7,7 @@ import MyFridgeView from '@/views/MyFridgeView.vue'
 import AiRecipeResultView from '@/views/AiRecipeResultView.vue'
 import RecipeDetailView from '@/views/RecipeDetailView.vue'
 import FindAccountView from '@/views/FindAccount.vue'
+import MyPageView from '@/views/MyPageView.vue'
 import { useAuthStore } from '@/stores/auth.js'
 
 const router = createRouter({
@@ -50,6 +51,11 @@ const router = createRouter({
     {
       path: '/find-account',
       component: FindAccountView,
+    },
+    {
+      path: '/mypage',
+      name: 'mypage',
+      component: MyPageView,
     },
   ],
 })

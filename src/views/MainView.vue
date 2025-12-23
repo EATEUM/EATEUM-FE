@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 import RecipeCarousel from '@/components/recipe/RecipeCarousel.vue' // 컴포넌트 이름 확인
 import FridgeSidebar from '@/components/fridge/FridgeSidebar.vue'
 import recipeApi from '@/api/recipeApi'
@@ -8,6 +9,9 @@ const aiRecommendRecipes = ref([])
 const popularRecipes = ref([])
 const speedRecipes = ref([])
 const isLoading = ref(false)
+
+const authStore = useAuthStore()
+const isLoggedIn = computed(() => authStore.isLoggedIn)
 
 const fetchAllRecipes = async () => {
   isLoading.value = true
@@ -26,9 +30,13 @@ const fetchAllRecipes = async () => {
   } finally {
     isLoading.value = false
   }
+
+
+
 }
 
 onMounted(fetchAllRecipes)
+
 </script>
 
 <template>
@@ -56,7 +64,7 @@ onMounted(fetchAllRecipes)
       </div>
 
       <aside class="w-72 flex-shrink-0">
-        <FridgeSidebar />
+        <FridgeSidebar :items="myItems" @delete-item="handleDeleteItem" />
       </aside>
     </div>
 
