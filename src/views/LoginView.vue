@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/stores/auth'
 import { Eye, EyeOff } from 'lucide-vue-next'
-import { alert } from '@/composables/useAlert'
+// No alert imports needed - login errors are handled by the form itself
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -18,8 +18,7 @@ const showPassword = ref(false)
 
 const handleLogin = async () => {
   if (!email.value || !password.value) {
-    alert('이메일과 비밀번호를 입력해주세요.', { title: '입력 오류' })
-    return
+    return // HTML required attribute handles this
   }
 
   const loginData = {
@@ -32,11 +31,6 @@ const handleLogin = async () => {
     router.replace('/')
   } catch (error) {
     console.error('로그인 실패:', error)
-    if (error.response && error.response.status === 401) {
-      alert('아이디 또는 비밀번호가 일치하지 않습니다.', { title: '로그인 실패' })
-    } else {
-      alert(error.response?.data?.message || '로그인 중 오류가 발생했습니다.', { title: '로그인 오류' })
-    }
   }
 }
 

@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { X, Info, Trash2 } from 'lucide-vue-next'
+import { X } from 'lucide-vue-next'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -23,22 +23,17 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'confirm', 'cancel'])
 
-const icon = computed(() => {
-  return props.type === 'destructive' ? Trash2 : Info
-})
-
-const iconColor = computed(() => {
-  return props.type === 'destructive' ? 'text-red-500' : 'text-blue-500'
-})
-
-const iconBgColor = computed(() => {
-  return props.type === 'destructive' ? 'bg-red-50' : 'bg-blue-50'
-})
-
-const confirmButtonColor = computed(() => {
-  return props.type === 'destructive'
-    ? 'bg-red-500 hover:bg-red-600'
-    : 'bg-blue-500 hover:bg-blue-600'
+// 타입별 설정
+const dialogConfig = computed(() => {
+  const configs = {
+    normal: {
+      confirmButtonColor: 'bg-gradient-to-r from-[#FFE8A3] to-[#FFD54F] hover:from-[#FFD54F] hover:to-[#FFC107] text-gray-800',
+    },
+    destructive: {
+      confirmButtonColor: 'bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white',
+    }
+  }
+  return configs[props.type]
 })
 
 const handleConfirm = () => {
@@ -58,58 +53,55 @@ const handleClose = () => {
 
 <template>
   <Transition
-    enter-active-class="transition-opacity duration-200"
+    enter-active-class="transition-opacity duration-300"
     leave-active-class="transition-opacity duration-200"
     enter-from-class="opacity-0"
     leave-to-class="opacity-0"
   >
     <div
       v-if="isOpen"
-      class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4"
+      class="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
       @click.self="handleClose"
     >
       <Transition
-        enter-active-class="transition-all duration-200"
-        leave-active-class="transition-all duration-200"
-        enter-from-class="opacity-0 scale-95"
-        leave-to-class="opacity-0 scale-95"
+        enter-active-class="transition-all duration-500 ease-out"
+        leave-active-class="transition-all duration-300 ease-in"
+        enter-from-class="opacity-0 scale-75 -translate-y-8"
+        leave-to-class="opacity-0 scale-90"
       >
         <div
           v-if="isOpen"
-          class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+          class="relative w-full max-w-sm rounded-3xl bg-gradient-to-br from-white to-gray-50 p-8 shadow-2xl"
         >
-          <!-- 헤더 -->
-          <div class="mb-4 flex items-start justify-between">
-            <div class="flex items-center gap-3">
-              <div :class="[iconBgColor, 'rounded-full p-2']">
-                <component :is="icon" :class="[iconColor, 'h-6 w-6']" />
-              </div>
-              <h3 class="text-lg font-bold text-gray-900">{{ title }}</h3>
-            </div>
-            <button
-              @click="handleClose"
-              class="text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <X :size="20" />
-            </button>
-          </div>
+          <!-- Close Button -->
+          <button
+            @click="handleClose"
+            class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors hover:rotate-90 duration-300"
+          >
+            <X :size="20" />
+          </button>
 
-          <!-- 메시지 -->
-          <div class="mb-6 pl-11">
-            <p class="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{{ message }}</p>
-          </div>
+          <!-- Title -->
+          <h3 class="mb-3 text-center text-2xl font-bold text-gray-800">
+            {{ title }}
+          </h3>
 
-          <!-- 버튼 -->
-          <div class="flex justify-end gap-2">
+          <!-- Message -->
+          <p class="mb-6 text-center text-sm text-gray-600 leading-relaxed whitespace-pre-line px-2">
+            {{ message }}
+          </p>
+
+          <!-- Buttons -->
+          <div class="flex gap-3">
             <button
               @click="handleCancel"
-              class="rounded-xl px-6 py-2.5 text-sm font-bold text-gray-700 transition-all hover:bg-gray-100 active:scale-95"
+              class="flex-1 rounded-2xl px-6 py-3.5 text-base font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-all active:scale-95 transform"
             >
               {{ cancelText }}
             </button>
             <button
               @click="handleConfirm"
-              :class="[confirmButtonColor, 'rounded-xl px-6 py-2.5 text-sm font-bold text-white transition-all shadow-sm hover:shadow-md active:scale-95']"
+              :class="[dialogConfig.confirmButtonColor, 'flex-1 rounded-2xl px-6 py-3.5 text-base font-bold transition-all shadow-lg hover:shadow-xl active:scale-95 transform']"
             >
               {{ confirmText }}
             </button>

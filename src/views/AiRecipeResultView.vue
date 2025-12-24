@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { Card, CardContent } from '@/components/ui/card'
 import RecipeCard from '@/components/recipe/RecipeCard.vue'
+import SkeletonAiRecipeResult from '@/components/skeleton/SkeletonAiRecipeResult.vue'
 import recipeApi from '@/api/recipeApi'
 
 const recipes = ref([])
@@ -123,8 +124,8 @@ onMounted(fetchAiRecipes)
       </section>
     </div>
 
-    <div v-else-if="isLoading" class="flex flex-1 items-center justify-center">
-      <div class="h-12 w-12 animate-spin rounded-full border-b-2 border-[#FFE8A3]"></div>
+    <div v-else-if="isLoading" class="flex flex-1">
+      <SkeletonAiRecipeResult />
     </div>
 
     <div v-else class="flex flex-1 flex-col items-center justify-center text-gray-400">
