@@ -1,6 +1,13 @@
 <script setup>
 import { ref, watch } from 'vue'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -49,7 +56,6 @@ const checkEmailDuplicate = async () => {
   try {
     await userApi.checkEmailDuplicate(email.value)
 
-    alertSuccess('사용 가능한 이메일입니다.', { title: '확인 완료' })
     isEmailAvailable.value = true
   } catch (error) {
     if (error.response && error.response.status === 409) {
@@ -95,14 +101,16 @@ const handleSubmit = async () => {
     if (resData.success) {
       alertSuccess('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.', {
         title: '가입 완료',
-        onConfirm: () => router.push('/login')
+        onConfirm: () => router.push('/login'),
       })
     } else {
       alert(resData.message, { title: '회원가입 실패' })
     }
   } catch (error) {
     console.error('회원가입 에러:', error)
-    alert(error.response?.data?.message || '회원가입 요청 중 오류가 발생했습니다.', { title: '서버 오류' })
+    alert(error.response?.data?.message || '회원가입 요청 중 오류가 발생했습니다.', {
+      title: '서버 오류',
+    })
   }
 }
 </script>

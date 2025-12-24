@@ -1,8 +1,9 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { Heart, X } from 'lucide-vue-next'
-import axios from '@/lib/axios'
+import recipeApi from '@/api/recipeApi'
 import { useRouter } from 'vue-router'
+import { confirm } from '@/composables/useAlert'
 
 const router = useRouter()
 const likedRecipes = ref([])
@@ -19,13 +20,7 @@ const goToDetail = (id) => {
 
 const fetchLikedRecipes = async () => {
   try {
-    const response = await axios.get('/recipes/my', {
-      params: {
-        status: 'liked',
-        page: 1,
-        size: 9
-      }
-    })
+    const response = await recipeApi.getMyRecipes('liked', 1, 9)
     if (response.data.success) {
       likedRecipes.value = response.data.data.items || []
     }
@@ -35,9 +30,14 @@ const fetchLikedRecipes = async () => {
 }
 
 const toggleLike = async (recipeVideoId) => {
-  if (!confirm('좋아요를 취소하시겠습니까?')) return
+  const shouldCancel = await confirm('좋아요를 취소하시겠습니까?', {
+    title: '좋아요 취소',
+    confirmText: '확인',
+  })
+  if (!shouldCancel) return
+
   try {
-    const response = await axios.post(`/recipes/${recipeVideoId}/like`)
+    const response = await recipeApi.buttonLike(recipeVideoId)
     if (response.data.success) {
       await fetchLikedRecipes() // 목록 즉시 갱신
     }
@@ -46,8 +46,11 @@ const toggleLike = async (recipeVideoId) => {
   }
 }
 
-onMounted(() => { fetchLikedRecipes() })
+onMounted(() => {
+  fetchLikedRecipes()
+})
 </script>
+
 <template>
   <div class="flex w-full flex-col items-center gap-10">
     <div v-if="likedRecipes.length === 0" class="py-20 font-bold text-stone-400">

@@ -1,3 +1,56 @@
+<script setup>
+import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { X } from 'lucide-vue-next'
+import recipeApi from '@/api/recipeApi'
+import { confirmDelete } from '@/composables/useAlert'
+
+const router = useRouter()
+const completedRecipes = ref([])
+
+const goToDetail = (id) => {
+  router.push({
+    path: '/recipe-detail',
+    query: {
+      recipeVideoId: id,
+      mode: 'my',
+    },
+  })
+}
+
+const fetchCompletedRecipes = async () => {
+  try {
+    const response = await recipeApi.getMyRecipes('completed', 1, 9)
+    if (response.data.success) {
+      completedRecipes.value = response.data.data.items || []
+    }
+  } catch (error) {
+    console.error('완성 레시피 조회 실패:', error)
+  }
+}
+
+const toggleComplete = async (recipeVideoId) => {
+  const shouldRemove = await confirmDelete('완성 목록에서 삭제하시겠습니까?', {
+    title: '완성 목록 삭제',
+    confirmText: '삭제',
+  })
+  if (!shouldRemove) return
+
+  try {
+    const response = await recipeApi.buttonComplete(recipeVideoId)
+    if (response.data.success) {
+      await fetchCompletedRecipes()
+    }
+  } catch (error) {
+    console.error('완성 취소 실패:', error)
+  }
+}
+
+onMounted(() => {
+  fetchCompletedRecipes()
+})
+</script>
+
 <template>
   <div class="flex w-full flex-col items-center gap-10">
     <div v-if="completedRecipes.length === 0" class="py-20 font-bold text-stone-400">
@@ -69,56 +122,3 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { X } from 'lucide-vue-next'
-import axios from '@/lib/axios'
-import { confirmDelete } from '@/composables/useAlert'
-
-const router = useRouter()
-const completedRecipes = ref([])
-
-const goToDetail = (id) => {
-  router.push({
-    path: '/recipe-detail',
-    query: {
-      recipeVideoId: id,
-      mode: 'my',
-    },
-  })
-}
-const fetchCompletedRecipes = async () => {
-  try {
-    const response = await axios.get('/recipes/my', {
-      params: { status: 'completed', page: 1, size: 9 },
-    })
-    if (response.data.success) {
-      completedRecipes.value = response.data.data.items || []
-    }
-  } catch (error) {
-    console.error('완성 레시피 조회 실패:', error)
-  }
-}
-
-const toggleComplete = async (recipeVideoId) => {
-  const shouldRemove = await confirmDelete('완성 목록에서 삭제하시겠습니까?', {
-    title: '완성 목록 삭제',
-    confirmText: '삭제'
-  })
-  if (!shouldRemove) return
-  try {
-    const response = await axios.post(`/recipes/${recipeVideoId}/complete`)
-    if (response.data.success) {
-      await fetchCompletedRecipes()
-    }
-  } catch (error) {
-    console.error('완성 취소 실패:', error)
-  }
-}
-
-onMounted(() => {
-  fetchCompletedRecipes()
-})
-</script>

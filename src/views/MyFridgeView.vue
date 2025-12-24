@@ -1,8 +1,10 @@
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
-import axios from '@/lib/axios'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import fridgeApi from '@/api/fridgeApi.js'
+import recipeApi from '@/api/recipeApi.js'
+
 import FridgeSearchBar from '@/components/fridge/FridgeSearchBar.vue'
 import FridgeItem from '@/components/fridge/FridgeItem.vue'
 import ImageRecognitionModal from '@/components/fridge/ImageModal.vue'
@@ -12,7 +14,7 @@ import { alert, alertWarning, confirm, confirmDelete } from '@/composables/useAl
 const router = useRouter()
 const authStore = useAuthStore()
 
-// 상태 정의 (중복 제거)
+// 상태 정의
 const myItems = ref([])
 const currentPage = ref(1)
 const isFetching = ref(false)
@@ -22,17 +24,18 @@ const totalItems = ref(0)
 const isModalOpen = ref(false)
 const recognizedItems = ref([])
 const isAnalyzing = ref(false)
+const isRecommending = ref(false)
 
 const isMember = computed(() => authStore.isAuthenticated)
 
-// 냉장고 데이터 로드
 const loadMyFridge = async (page = 1) => {
   if (isFetching.value) return
   if (!hasMore.value && page !== 1) return
 
   isFetching.value = true
   try {
-    const res = await axios.get('/fridges', { params: { page, size: 20 } })
+    const res = await fridgeApi.getFridgeItems(page, 20)
+
     if (res.data && res.data.success) {
       const serverData = res.data.data
       const fetchedItems = serverData.items || serverData.content || serverData.list || []
@@ -52,7 +55,7 @@ const loadMyFridge = async (page = 1) => {
     if (err.response?.status === 401) {
       alertWarning('세션이 만료되었습니다. 다시 로그인해 주세요.', {
         title: '세션 만료',
-        onConfirm: () => router.push('/login')
+        onConfirm: () => router.push('/login'),
       })
     }
   } finally {
@@ -66,19 +69,14 @@ let observer = null
 
 const initObserver = () => {
   if (observer) observer.disconnect()
-
   observer = new IntersectionObserver(
     (entries) => {
       if (entries[0].isIntersecting && hasMore.value && !isFetching.value) {
         loadMyFridge(currentPage.value + 1)
       }
     },
-    {
-      rootMargin: '300px',
-      threshold: 0,
-    },
+    { rootMargin: '300px', threshold: 0 },
   )
-
   if (observerTarget.value) observer.observe(observerTarget.value)
 }
 
@@ -99,18 +97,17 @@ const refreshList = async () => {
   initObserver()
 }
 
-// 이벤트 핸들러
 const handleAddItem = async (item) => {
   if (!isMember.value) {
     const shouldLogin = await confirm('로그인이 필요합니다.', {
       title: '로그인 필요',
-      confirmText: '로그인하기'
+      confirmText: '로그인하기',
     })
     if (shouldLogin) router.push('/login')
     return
   }
   try {
-    const res = await axios.post('/fridges', { itemId: item.itemId })
+    const res = await fridgeApi.addFridgeItem(item.itemId)
     if (res.data.success) await refreshList()
   } catch (err) {
     alert(err.response?.data?.message || '추가 실패', { title: '추가 실패' })
@@ -121,7 +118,7 @@ const handleDeleteItem = async (itemId) => {
   const shouldDelete = await confirmDelete('삭제하시겠습니까?', { title: '재료 삭제' })
   if (!shouldDelete) return
   try {
-    const res = await axios.delete(`/fridges/${itemId}`) 
+    const res = await fridgeApi.deleteFridgeItem(itemId)
     if (res.data.success) await refreshList()
   } catch (err) {
     alert(err.response?.data?.message || '삭제 실패', { title: '삭제 실패' })
@@ -134,12 +131,10 @@ const handleImageRecognition = async (file) => {
   const formData = new FormData()
   formData.append('file', file)
   try {
-    const res = await axios.post('/fridges/image-recognition', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
+    const res = await fridgeApi.recognizeImage(formData)
     if (res.data.success) recognizedItems.value = res.data.data
   } catch (err) {
-    isModalOpen.value = false
+    isModalOpen.value = false // 실패 시 모달 닫기 혹은 에러 처리
   } finally {
     isAnalyzing.value = false
   }
@@ -147,13 +142,39 @@ const handleImageRecognition = async (file) => {
 
 const handleAddMultipleItems = async (itemIds) => {
   try {
-    const res = await axios.post('/fridges/add-items', itemIds)
+    const res = await fridgeApi.addMultipleItems(itemIds)
     if (res.data.success) {
       isModalOpen.value = false
       await refreshList()
     }
   } catch (err) {
     alert('추가 실패', { title: '추가 실패' })
+  }
+}
+
+const handleAiRecommend = async () => {
+  if (myItems.value.length === 0) {
+    alertWarning('냉장고가 비어있습니다. 재료를 먼저 추가해주세요!', { title: '재료 부족' })
+    return
+  }
+
+  isRecommending.value = true
+
+  try {
+    const currentItemNames = myItems.value.map((item) => item.itemName)
+
+    const res = await recipeApi.getAiRecommendations(currentItemNames)
+
+    if (res.data.success) {
+      router.push('/ai-result')
+    }
+  } catch (err) {
+    console.error(err)
+    alert(err.response?.data?.message || '레시피 추천 중 오류가 발생했습니다.', {
+      title: '오류 발생',
+    })
+  } finally {
+    isRecommending.value = false
   }
 }
 </script>
@@ -164,10 +185,14 @@ const handleAddMultipleItems = async (itemIds) => {
       <header class="mb-10 flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
         <div class="text-left">
           <div class="mb-2 flex items-center gap-3">
-            <h1 class="text-3xl leading-tight font-black tracking-tight text-neutral-900 sm:text-[50px]">
+            <h1
+              class="text-3xl leading-tight font-black tracking-tight text-neutral-900 sm:text-[50px]"
+            >
               나의 냉장고
             </h1>
-            <span class="mt-1 self-center rounded-full bg-white px-3 py-1 text-xs font-bold text-amber-500 border border-amber-100 shadow-sm sm:text-sm">
+            <span
+              class="mt-1 self-center rounded-full border border-amber-100 bg-white px-3 py-1 text-xs font-bold text-amber-500 shadow-sm sm:text-sm"
+            >
               총 {{ totalItems }}개
             </span>
           </div>
@@ -177,16 +202,27 @@ const handleAddMultipleItems = async (itemIds) => {
         </div>
 
         <button
-          @click="router.push('/ai-result')"
-          class="group relative h-[52px] overflow-hidden rounded-2xl bg-[#FF9F1C] px-5 transition-all duration-300 shadow-[0_8px_0_#E67E00] hover:shadow-[0_4px_0_#E67E00] hover:translate-y-[4px] active:translate-y-[6px] active:shadow-none"
+          @click="handleAiRecommend"
+          :disabled="isRecommending"
+          class="group relative h-[52px] overflow-hidden rounded-2xl bg-[#FF9F1C] px-5 shadow-[0_8px_0_#E67E00] transition-all duration-300 hover:translate-y-[4px] hover:shadow-[0_4px_0_#E67E00] active:translate-y-[6px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-70"
         >
           <div class="relative z-10 flex items-center gap-3">
-            <ChefHat class="h-6 w-6 text-white transition-transform duration-700 group-hover:rotate-[30deg] group-hover:scale-110" />
+            <div
+              v-if="isRecommending"
+              class="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"
+            ></div>
+            <ChefHat
+              v-else
+              class="h-6 w-6 text-white transition-transform duration-700 group-hover:scale-110 group-hover:rotate-[30deg]"
+            />
+
             <span class="text-m font-bold tracking-wide text-white">
-              AI 레시피 추천받기
+              {{ isRecommending ? '레시피 생성 중...' : 'AI 레시피 추천받기' }}
             </span>
           </div>
-          <div class="absolute inset-x-0 top-0 h-[30%] bg-gradient-to-b from-white/20 to-transparent"></div>
+          <div
+            class="absolute inset-x-0 top-0 h-[30%] bg-gradient-to-b from-white/20 to-transparent"
+          ></div>
         </button>
       </header>
 
@@ -194,27 +230,16 @@ const handleAddMultipleItems = async (itemIds) => {
         <FridgeSearchBar @add-item="handleAddItem" @image-selected="handleImageRecognition" />
       </div>
 
-      <div v-if="myItems.length > 0" class="grid w-full grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-5">
+      <div
+        v-if="myItems.length > 0"
+        class="grid w-full grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-5"
+      >
         <FridgeItem
           v-for="item in myItems"
           :key="item.itemId"
           v-bind="item"
           @delete-item="handleDeleteItem"
         />
-      </div>
-
-      <div v-else-if="!isFetching" class="mt-20 text-center text-xl font-bold text-stone-400">
-        냉장고가 비어있습니다.
-      </div>
-
-      <div ref="observerTarget" class="mt-10 flex h-40 w-full flex-col items-center justify-center">
-        <div v-if="isFetching" class="flex flex-col items-center gap-2">
-          <div class="h-8 w-8 animate-spin rounded-full border-4 border-amber-400 border-t-transparent"></div>
-          <p class="text-sm font-bold text-amber-400">재료 더 가져오는 중...</p>
-        </div>
-        <p v-else-if="!hasMore && myItems.length > 0" class="text-base font-bold text-stone-400">
-          모든 재료를 확인했습니다. 🍽️
-        </p>
       </div>
     </main>
 
