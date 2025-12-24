@@ -37,13 +37,17 @@ export const useAuthStore = defineStore(
 
     const reissue = async () => {
       try {
+        console.log('[reissue] 토큰 갱신 시도...')
         const response = await userApi.reissue()
+        console.log('[reissue] 응답:', response.data)
         const { accessToken: newAccessToken } = response.data.data
         accessToken.value = newAccessToken
         api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`
+        console.log('[reissue] 토큰 갱신 성공!')
         return newAccessToken
       } catch (error) {
-        await logout()
+        console.error('[reissue] 토큰 갱신 실패:', error)
+        // logout은 interceptor에서 처리하므로 여기서는 에러만 throw
         throw error
       }
     }
