@@ -4,16 +4,15 @@ import Navbar from './components/layout/Navbar.vue'
 import Footer from './components/layout/Footer.vue'
 import ChatbotAside from '@/components/chat/ChatbotAside.vue'
 import ChatbotButton from '@/components/chat/ChatbotButton.vue'
-import AlertDialog from '@/components/common/AlertDialog.vue'
+import LoginRequiredModal from '@/components/common/LoginRequiredModal.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import { useAlert } from '@/composables/useAlert'
 
 const {
-  alertState,
+  loginRequiredState,
   confirmState,
-  closeAlert,
+  closeLoginRequired,
   closeConfirm,
-  handleAlertConfirm,
   handleConfirmConfirm,
   handleConfirmCancel
 } = useAlert()
@@ -32,15 +31,10 @@ const {
     <ChatbotButton />
     <Footer />
 
-    <!-- 전역 Alert/Confirm 다이얼로그 -->
-    <AlertDialog
-      :is-open="alertState.isOpen"
-      :type="alertState.type"
-      :title="alertState.title"
-      :message="alertState.message"
-      :confirm-text="alertState.confirmText"
-      @close="closeAlert"
-      @confirm="handleAlertConfirm"
+    <!-- 전역 다이얼로그 -->
+    <LoginRequiredModal
+      :is-open="loginRequiredState.isOpen"
+      @close="closeLoginRequired"
     />
     <ConfirmDialog
       :is-open="confirmState.isOpen"

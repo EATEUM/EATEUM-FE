@@ -1,15 +1,11 @@
 import { ref } from 'vue'
 
-// 전역 상태 관리
-const alertState = ref({
-  isOpen: false,
-  type: 'error', // 'error', 'success', 'info', 'warning'
-  title: '',
-  message: '',
-  confirmText: '확인',
-  onConfirm: null
+// 로그인 필요 모달 상태
+const loginRequiredState = ref({
+  isOpen: false
 })
 
+// Confirm 상태 (필요한 경우만 유지)
 const confirmState = ref({
   isOpen: false,
   type: 'normal', // 'normal', 'destructive'
@@ -23,27 +19,14 @@ const confirmState = ref({
 
 export function useAlert() {
   /**
-   * Alert 표시 (단순 알림)
-   * @param {Object} options
-   * @param {string} options.type - 'error', 'success', 'info', 'warning'
-   * @param {string} options.title - 제목
-   * @param {string} options.message - 메시지
-   * @param {string} options.confirmText - 확인 버튼 텍스트
-   * @param {Function} options.onConfirm - 확인 콜백
+   * 로그인 필요 모달 표시
    */
-  const showAlert = (options) => {
-    alertState.value = {
-      isOpen: true,
-      type: options.type || 'error',
-      title: options.title || getDefaultTitle(options.type || 'error'),
-      message: options.message || '',
-      confirmText: options.confirmText || '확인',
-      onConfirm: options.onConfirm || null
-    }
+  const showLoginRequired = () => {
+    loginRequiredState.value.isOpen = true
   }
 
   /**
-   * Confirm 표시 (확인/취소)
+   * Confirm 표시 (확인/취소) - 중요한 작업에만 사용
    * @param {Object} options
    * @param {string} options.type - 'normal', 'destructive'
    * @param {string} options.title - 제목
@@ -75,17 +58,12 @@ export function useAlert() {
     })
   }
 
-  const closeAlert = () => {
-    alertState.value.isOpen = false
+  const closeLoginRequired = () => {
+    loginRequiredState.value.isOpen = false
   }
 
   const closeConfirm = () => {
     confirmState.value.isOpen = false
-  }
-
-  const handleAlertConfirm = () => {
-    alertState.value.onConfirm?.()
-    closeAlert()
   }
 
   const handleConfirmConfirm = () => {
@@ -101,10 +79,6 @@ export function useAlert() {
   // 기본 타이틀 반환
   function getDefaultTitle(type) {
     const titles = {
-      error: '오류',
-      success: '성공',
-      info: '알림',
-      warning: '경고',
       normal: '확인',
       destructive: '삭제 확인'
     }
@@ -113,55 +87,23 @@ export function useAlert() {
 
   return {
     // 상태
-    alertState,
+    loginRequiredState,
     confirmState,
 
     // 메서드
-    showAlert,
+    showLoginRequired,
     showConfirm,
-    closeAlert,
+    closeLoginRequired,
     closeConfirm,
-    handleAlertConfirm,
     handleConfirmConfirm,
     handleConfirmCancel
   }
 }
 
 // 편의 메서드들
-export function alert(message, options = {}) {
-  const { showAlert } = useAlert()
-  showAlert({
-    type: 'error',
-    message,
-    ...options
-  })
-}
-
-export function alertSuccess(message, options = {}) {
-  const { showAlert } = useAlert()
-  showAlert({
-    type: 'success',
-    message,
-    ...options
-  })
-}
-
-export function alertInfo(message, options = {}) {
-  const { showAlert } = useAlert()
-  showAlert({
-    type: 'info',
-    message,
-    ...options
-  })
-}
-
-export function alertWarning(message, options = {}) {
-  const { showAlert } = useAlert()
-  showAlert({
-    type: 'warning',
-    message,
-    ...options
-  })
+export function showLoginRequired() {
+  const { showLoginRequired: show } = useAlert()
+  show()
 }
 
 export function confirm(message, options = {}) {
@@ -179,6 +121,41 @@ export function confirmDelete(message, options = {}) {
     type: 'destructive',
     message,
     confirmText: '삭제',
+    ...options
+  })
+}
+
+// 일반 알림 (확인만)
+export function alert(message, options = {}) {
+  const { showConfirm } = useAlert()
+  return showConfirm({
+    type: 'normal',
+    message,
+    cancelText: '',
+    ...options
+  })
+}
+
+// 성공 알림
+export function alertSuccess(message, options = {}) {
+  const { showConfirm } = useAlert()
+  return showConfirm({
+    type: 'normal',
+    title: '성공',
+    message,
+    cancelText: '',
+    ...options
+  })
+}
+
+// 경고 알림
+export function alertWarning(message, options = {}) {
+  const { showConfirm } = useAlert()
+  return showConfirm({
+    type: 'normal',
+    title: '경고',
+    message,
+    cancelText: '',
     ...options
   })
 }

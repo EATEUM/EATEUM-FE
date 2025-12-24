@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import RecipeCarousel from '@/components/recipe/RecipeCarousel.vue'
 import FridgeSidebar from '@/components/fridge/FridgeSidebar.vue'
+import SkeletonMainView from '@/components/skeleton/SkeletonMainView.vue'
 import recipeApi from '@/api/recipeApi'
 import fridgeApi from '@/api/fridgeApi'
 
@@ -87,7 +88,6 @@ watch(
 )
 </script>
 
-<
 <template>
   <div class="min-h-screen p-4 md:p-8">
     <div
@@ -124,10 +124,8 @@ watch(
       </aside>
     </div>
 
-    <div v-else class="flex min-h-[60vh] items-center justify-center">
-      <div
-        class="h-10 w-10 animate-spin rounded-full border-4 border-amber-500 border-t-transparent"
-      ></div>
+    <div v-else class="min-h-[60vh]">
+      <SkeletonMainView />
     </div>
   </div>
 </template>

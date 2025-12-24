@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { alert, confirmDelete } from '@/composables/useAlert'
+import { showLoginRequired, confirmDelete } from '@/composables/useAlert'
 
 const props = defineProps({
   items: { type: Array, default: () => [] },
@@ -17,10 +17,7 @@ const hasItems = computed(() => props.items.length > 0)
 
 const handleAddClick = () => {
   if (!isAuthenticated.value) {
-    alert('로그인 후 이용해 주세요.', {
-      title: '로그인 필요',
-      onConfirm: () => router.push('/login')
-    })
+    showLoginRequired()
     return
   }
   router.push('/fridge')
@@ -28,10 +25,7 @@ const handleAddClick = () => {
 
 const handleDelete = async (itemId) => {
   if (!isAuthenticated.value) {
-    alert('로그인 후 이용해 주세요.', {
-      title: '로그인 필요',
-      onConfirm: () => router.push('/login')
-    })
+    showLoginRequired()
     return
   }
   const shouldDelete = await confirmDelete('이 재료를 냉장고에서 삭제하시겠습니까?', { title: '재료 삭제' })
@@ -42,10 +36,7 @@ const handleDelete = async (itemId) => {
 
 const handleRecipeClick = () => {
   if (!isAuthenticated.value) {
-    alert('로그인 후 이용해 주세요.', {
-      title: '로그인 필요',
-      onConfirm: () => router.push('/login')
-    })
+    showLoginRequired()
     return
   }
 

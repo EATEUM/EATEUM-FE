@@ -109,8 +109,8 @@ const handleAddItem = async (item) => {
   try {
     const res = await fridgeApi.addFridgeItem(item.itemId)
     if (res.data.success) await refreshList()
-  } catch (err) {
-    alert(err.response?.data?.message || '추가 실패', { title: '추가 실패' })
+  } catch {
+    alert('추가 실패', { title: '추가 실패' })
   }
 }
 
@@ -120,8 +120,8 @@ const handleDeleteItem = async (itemId) => {
   try {
     const res = await fridgeApi.deleteFridgeItem(itemId)
     if (res.data.success) await refreshList()
-  } catch (err) {
-    alert(err.response?.data?.message || '삭제 실패', { title: '삭제 실패' })
+  } catch {
+    alert('삭제 실패', { title: '삭제 실패' })
   }
 }
 
@@ -133,7 +133,7 @@ const handleImageRecognition = async (file) => {
   try {
     const res = await fridgeApi.recognizeImage(formData)
     if (res.data.success) recognizedItems.value = res.data.data
-  } catch (err) {
+  } catch {
     isModalOpen.value = false // 실패 시 모달 닫기 혹은 에러 처리
   } finally {
     isAnalyzing.value = false
@@ -147,7 +147,7 @@ const handleAddMultipleItems = async (itemIds) => {
       isModalOpen.value = false
       await refreshList()
     }
-  } catch (err) {
+  } catch {
     alert('추가 실패', { title: '추가 실패' })
   }
 }

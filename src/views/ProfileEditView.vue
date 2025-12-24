@@ -6,7 +6,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import userApi from '@/api/userApi'
 import confetti from 'canvas-confetti'
-import { alert, alertSuccess, confirmDelete } from '@/composables/useAlert'
+import { alertSuccess, confirmDelete } from '@/composables/useAlert'
 
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -59,7 +59,7 @@ const onImageRemove = () => {
 
 const isUpdating = ref(false)
 
-const updateBasicInfo = async (event) => {
+const updateBasicInfo = async () => {
   if (isUpdating.value) return
   isUpdating.value = true
   try {
@@ -78,24 +78,24 @@ const updateBasicInfo = async (event) => {
     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } })
     alertSuccess('기본 정보가 수정되었습니다.', { title: '수정 완료' })
     await authStore.getMyInfo()
-  } catch (error) {
-    alert('수정 실패', { title: '오류' })
+  } catch {
+    console.error('수정 실패', { title: '오류' })
   } finally {
     isUpdating.value = false
   }
 }
 
-const updatePassword = async (event) => {
+const updatePassword = async () => {
   if (!oldPassword.value || !newPassword.value || !confirmPassword.value) {
-    alert('모든 비밀번호 필드를 입력해주세요.', { title: '입력 오류' })
+    console.error('모든 비밀번호 필드를 입력해주세요.', { title: '입력 오류' })
     return
   }
   if (newPassword.value !== confirmPassword.value) {
-    alert('새 비밀번호가 일치하지 않습니다.', { title: '입력 오류' })
+    console.error('새 비밀번호가 일치하지 않습니다.', { title: '입력 오류' })
     return
   }
   if (newPassword.value.length < 8) {
-    alert('비밀번호는 8자 이상이어야 합니다.', { title: '입력 오류' })
+    console.error('비밀번호는 8자 이상이어야 합니다.', { title: '입력 오류' })
     return
   }
 
@@ -113,7 +113,7 @@ const updatePassword = async (event) => {
     newPassword.value = ''
     confirmPassword.value = ''
   } catch (error) {
-    alert(error.response?.data?.message || '비밀번호 변경에 실패했습니다.', { title: '변경 실패' })
+    console.error(error.response?.data?.message || '비밀번호 변경에 실패했습니다.', { title: '변경 실패' })
   }
 }
 
@@ -133,9 +133,8 @@ const handleWithdraw = async () => {
         title: '탈퇴 완료',
         onConfirm: () => router.replace('/')
       })
-    } catch (error) {
-      console.error(error)
-      alert('탈퇴 처리 중 오류가 발생했습니다. 다시 시도해주세요.', { title: '탈퇴 오류' })
+    } catch {
+      console.error('탈퇴 처리 중 오류가 발생했습니다. 다시 시도해주세요.', { title: '탈퇴 오류' })
     }
   }
 }

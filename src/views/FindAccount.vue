@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Eye, EyeOff } from 'lucide-vue-next'
 import userApi from '@/api/userApi'
 import { useAuthStore } from '@/stores/auth.js'
-import { alert, alertSuccess } from '@/composables/useAlert'
+import { alertSuccess } from '@/composables/useAlert'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -28,7 +28,7 @@ const foundEmail = ref('')
 // 이메일 찾기
 const handleFindEmail = async () => {
   if (!name.value || !phone.value) {
-    alert('이름과 전화번호를 입력해주세요.', { title: '입력 오류' })
+    console.error('이름과 전화번호를 입력해주세요.', { title: '입력 오류' })
     return
   }
 
@@ -46,19 +46,19 @@ const handleFindEmail = async () => {
     }
   } catch (error) {
     console.error(error)
-    alert(error.response?.data?.message || '일치하는 회원 정보를 찾을 수 없습니다.', { title: '조회 실패' })
+    console.error(error.response?.data?.message || '일치하는 회원 정보를 찾을 수 없습니다.', { title: '조회 실패' })
   }
 }
 
 // 비밀번호 찾기
 const handleResetPassword = async () => {
   if (!email.value || !name.value || !phone.value || !newPassword.value) {
-    alert('모든 정보를 입력해주세요.', { title: '입력 오류' })
+    console.error('모든 정보를 입력해주세요.', { title: '입력 오류' })
     return
   }
 
   if (newPassword.value !== confirmPassword.value) {
-    alert('비밀번호가 일치하지 않습니다.', { title: '입력 오류' })
+    console.error('비밀번호가 일치하지 않습니다.', { title: '입력 오류' })
     return
   }
 
@@ -84,7 +84,7 @@ const handleResetPassword = async () => {
     }
   } catch (error) {
     console.error(error)
-    alert(error.response?.data?.message || '정보 확인에 실패했습니다.', { title: '변경 실패' })
+    console.error(error.response?.data?.message || '정보 확인에 실패했습니다.', { title: '변경 실패' })
   }
 }
 
