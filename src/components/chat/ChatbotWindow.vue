@@ -40,7 +40,7 @@ const sendMessage = async () => {
 
   try {
     // 회원
-    if (authStore.isLoggedIn) {
+    if (authStore.isAuthenticated) {
       const res = await axios.post('/chat/member', { message })
       chatbotStore.addMessage('ASSISTANT', res.data.answer)
     }
@@ -72,7 +72,7 @@ const loadHistory = async () => {
 
   try {
     // 회원
-    if (authStore.isLoggedIn) {
+    if (authStore.isAuthenticated) {
       const res = await axios.get('/chat/member/history')
       res.data.data.forEach((msg) => {
         chatbotStore.addMessage(msg.role, msg.content)
@@ -114,11 +114,9 @@ onMounted(async () => {
   // 1️⃣ 히스토리 먼저 로드
   await loadHistory()
 
-  // 2️⃣ 안내 메시지가 없으면 맨 앞에 추가
-  const hasSuggestMessage = chatbotStore.messages.some(msg => msg.isSuggest)
-
-  if (!hasSuggestMessage) {
-    chatbotStore.messages.unshift({
+  // 2️⃣ 안내 메시지가 없으면 맨 앞에 추가 (히스토리가 비어있을 때만)
+  if (chatbotStore.messages.length === 0) {
+    chatbotStore.messages.push({
       role: SUGGEST_MESSAGE.role,
       content: SUGGEST_MESSAGE.content,
       isSuggest: SUGGEST_MESSAGE.isSuggest

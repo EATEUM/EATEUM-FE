@@ -7,6 +7,7 @@ import LogoEateum from '@/assets/logo/logo-eateum.png'
 import { Bell, Search } from 'lucide-vue-next'
 import UserProfile from '@/components/common/UserProfile.vue'
 import { useAuthStore } from '@/stores/auth'
+import { confirm } from '@/composables/useAlert'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -17,7 +18,11 @@ const userProfileUrl = computed(() => authStore.user?.profileImage || '')
 
 const handleAuthAction = async () => {
   if (isAuthenticated.value) {
-    if (confirm('로그아웃 하시겠습니까?')) {
+    const shouldLogout = await confirm('로그아웃 하시겠습니까?', {
+      title: '로그아웃',
+      confirmText: '로그아웃'
+    })
+    if (shouldLogout) {
       await authStore.logout()
       router.push('/')
     }

@@ -23,8 +23,8 @@ const fetchLikedRecipes = async () => {
       params: {
         status: 'liked',
         page: 1,
-        size: 9,
-      },
+        size: 9
+      }
     })
     if (response.data.success) {
       likedRecipes.value = response.data.data.items || []
@@ -46,9 +46,7 @@ const toggleLike = async (recipeVideoId) => {
   }
 }
 
-onMounted(() => {
-  fetchLikedRecipes()
-})
+onMounted(() => { fetchLikedRecipes() })
 </script>
 <template>
   <div class="flex w-full flex-col items-center gap-10">
