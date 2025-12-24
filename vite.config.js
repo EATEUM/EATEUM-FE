@@ -26,6 +26,11 @@ export default defineConfig({
         target: 'http://localhost:8080',
         changeOrigin: true,
       },
+      '/chat/': {
+        target: 'http://localhost:8080', // 정확한 API 서버 주소
+        changeOrigin: true, // 헤더에 필요한 변경
+        rewrite: (path) => path.replace(/^\/chat/, '/chat'), // /chat/ 경로 유지
+      },
     },
   },
 })
