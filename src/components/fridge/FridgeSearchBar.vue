@@ -9,16 +9,17 @@ const isDropdownOpen = ref(false);
 const fileInput = ref(null);
 
 const emit = defineEmits(['add-item', 'image-selected']);
-
 let searchTimer = null;
 
-// 실시간 검색 로직 (백엔드 로그와 일치하는 API 호출)
 const onInput = (e) => {
-  searchQuery.value = e.target.value;
+  const val = e.target.value;
+  searchQuery.value = val;
+
   if (searchTimer) clearTimeout(searchTimer);
-  const val = searchQuery.value.trim();
   
-  if (val.length < 1) {
+  const trimmedVal = val.trim();
+  
+  if (trimmedVal.length < 1) {
     searchResults.value = [];
     isDropdownOpen.value = false;
     return;
@@ -26,25 +27,29 @@ const onInput = (e) => {
 
   searchTimer = setTimeout(async () => {
     try {
-      // 백엔드 컨트롤러의 /fridges/search API 호출
       const res = await axios.get('http://localhost:8080/fridges/search', {
-        params: { keyword: val }
+        params: { keyword: trimmedVal }
       });
-      if (res.data.success) {
+      
+      if (res.data.success && searchQuery.value.trim() !== '') {
         searchResults.value = res.data.data;
-        // 결과가 있을 때만 드롭다운을 엽니다.
         isDropdownOpen.value = searchResults.value.length > 0;
       }
     } catch (err) {
       console.error("검색 실패:", err);
     }
-  }, 150);
+  }, 100);
 };
 
 const selectItem = (item) => {
-  emit('add-item', item.itemId);
-  searchQuery.value = '';
+  if (searchTimer) clearTimeout(searchTimer);
+  
+  const itemToAdd = { ...item }; 
   isDropdownOpen.value = false;
+  searchQuery.value = '';
+  searchResults.value = [];
+  
+  emit('add-item', itemToAdd);
 };
 
 const triggerFileInput = () => {
@@ -61,9 +66,9 @@ const handleFileChange = (e) => {
 </script>
 
 <template>
-  <div class="w-full relative">
-    <div class="flex w-full gap-4 items-center">
-      <div class="flex-1 flex items-center h-[60px] px-6 bg-white rounded-2xl shadow-sm border border-stone-100 focus-within:border-amber-400 focus-within:ring-2 focus-within:ring-amber-100 transition-all">
+  <div class="w-full flex gap-4 items-center">
+    <div class="relative flex-1">
+      <div class="flex items-center h-[60px] px-6 bg-white rounded-2xl shadow-sm border border-stone-100 focus-within:border-amber-400 focus-within:ring-2 focus-within:ring-amber-100 transition-all">
         <Search class="w-6 h-6 text-stone-400 mr-4" />
         <input 
           :value="searchQuery"
@@ -74,28 +79,27 @@ const handleFileChange = (e) => {
         />
       </div>
 
-      <button 
-        @click="triggerFileInput"
-        type="button"
-        title="AI 이미지로 재료 추가"
-        class="h-[60px] w-[60px] flex items-center justify-center rounded-2xl bg-[#F1C232] shadow-[0px_4px_12px_rgba(251,191,36,0.4)] hover:bg-amber-500 hover:scale-105 active:scale-95 transition-all duration-200 group"
-      >
-        <Camera class="w-7 h-7 text-white group-hover:rotate-12 transition-transform" />
-      </button>
-
-      <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="handleFileChange" />
+      <ul v-if="isDropdownOpen && searchResults.length > 0" class="absolute w-full mt-3 bg-white border border-stone-100 rounded-2xl shadow-2xl z-[100] overflow-hidden">
+        <li 
+          v-for="res in searchResults" :key="res.itemId"
+          @mousedown.prevent="selectItem(res)" 
+          class="px-6 py-4 hover:bg-amber-50 cursor-pointer flex items-center gap-4 border-b border-stone-50 last:border-none group"
+        >
+          <span class="text-3xl">{{ res.itemImg }}</span>
+          <span class="font-bold text-neutral-800 text-lg">{{ res.itemName }}</span>
+          <span class="ml-auto text-amber-500 font-bold text-sm opacity-0 group-hover:opacity-100 transition-opacity">냉장고에 추가 +</span>
+        </li>
+      </ul>
     </div>
 
-    <ul v-if="isDropdownOpen" class="absolute w-full mt-3 bg-white border border-stone-100 rounded-2xl shadow-2xl z-[100] overflow-hidden">
-      <li 
-        v-for="res in searchResults" :key="res.itemId"
-        @mousedown.prevent="selectItem(res)" 
-        class="px-6 py-4 hover:bg-amber-50 cursor-pointer flex items-center gap-4 border-b border-stone-50 last:border-none group"
-      >
-        <span class="text-3xl">{{ res.itemImg }}</span>
-        <span class="font-bold text-neutral-800 text-lg">{{ res.itemName }}</span>
-        <span class="ml-auto text-amber-500 font-bold text-sm opacity-0 group-hover:opacity-100 transition-opacity">냉장고에 추가 +</span>
-      </li>
-    </ul>
+    <button 
+      @click="triggerFileInput"
+      type="button"
+      class="h-[64px] w-[64px] flex items-center justify-center rounded-2xl bg-gradient-to-br from-[#F1C232] to-amber-500 shadow-[0px_8px_20px_rgba(251,191,36,0.5)] transition-all duration-300 hover:scale-110 hover:shadow-[0px_12px_24px_rgba(251,191,36,0.6)] hover:from-[#FFD54F] hover:to-amber-600 active:scale-95 group border-2 border-amber-300/50"
+    >
+      <Camera class="w-8 h-8 text-white drop-shadow-sm transition-transform duration-300 group-hover:rotate-12" />
+    </button>
+
+    <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="handleFileChange" />
   </div>
 </template>

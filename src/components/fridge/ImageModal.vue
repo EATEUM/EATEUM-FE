@@ -22,7 +22,7 @@ const toggleItem = (itemId) => {
 
 const handleConfirm = () => {
   emit('confirm', selectedIds.value);
-  selectedIds.value = []; // 초기화
+  selectedIds.value = [];
 };
 
 const handleClose = () => {
@@ -35,7 +35,7 @@ const handleClose = () => {
   <div v-if="isOpen" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
     <div class="w-full max-w-lg rounded-3xl bg-white p-8 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
       <div class="mb-6 flex items-center justify-between shrink-0">
-        <h3 class="text-2xl font-black text-stone-900">AI 인식 결과</h3>
+        <h3 class="text-2xl font-bold text-stone-900">AI 인식 결과</h3>
         <button @click="handleClose" class="text-stone-400 hover:text-stone-600 transition-colors text-2xl">✕</button>
       </div>
 
