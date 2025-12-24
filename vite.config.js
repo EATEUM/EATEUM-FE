@@ -14,6 +14,7 @@ export default defineConfig({
     },
   },
   server: {
+    host: '0.0.0.0', // 다른 컴퓨터 연동위해
     proxy: {
       '/api': {
         target: 'http://localhost:8080',

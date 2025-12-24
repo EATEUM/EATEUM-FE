@@ -50,4 +50,20 @@ export default {
   deleteMemo(recipeVideoId, memoId) {
     return api.delete(`${BASE_URL}/${recipeVideoId}/memo/${memoId}`)
   },
+
+  // 나의 레시피 목록 조회 (좋아요/완성)
+  getMyRecipes(status, page = 1, size = 9) {
+    return api.get(`${BASE_URL}/my`, {
+      params: {
+        status: status, // 'liked' or 'completed'
+        page: page,
+        size: size,
+      },
+    })
+  },
+
+  // 마이페이지 대시보드
+  getDashboardData() {
+    return api.get(`${BASE_URL}/my/dashboard`)
+  },
 }
