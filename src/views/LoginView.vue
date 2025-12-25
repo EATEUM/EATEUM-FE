@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/stores/auth'
 import { Eye, EyeOff } from 'lucide-vue-next'
-// No alert imports needed - login errors are handled by the form itself
+import { alertWarning } from '@/composables/useAlert'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -31,6 +31,12 @@ const handleLogin = async () => {
     router.replace('/')
   } catch (error) {
     console.error('로그인 실패:', error)
+
+    // 모든 로그인 실패를 동일한 메시지로 처리 (보안상 이유)
+    alertWarning(
+      '이메일 또는 비밀번호가 일치하지 않습니다.\n계정 정보를 확인해주세요.',
+      { title: '로그인 실패' }
+    )
   }
 }
 

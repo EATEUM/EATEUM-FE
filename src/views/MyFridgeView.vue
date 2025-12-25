@@ -8,8 +8,9 @@ import recipeApi from '@/api/recipeApi.js'
 import FridgeSearchBar from '@/components/fridge/FridgeSearchBar.vue'
 import FridgeItem from '@/components/fridge/FridgeItem.vue'
 import ImageRecognitionModal from '@/components/fridge/ImageModal.vue'
+import LoginRequiredModal from '@/components/common/LoginRequiredModal.vue'
 import { ChefHat } from 'lucide-vue-next'
-import { alert, alertWarning, confirm, confirmDelete } from '@/composables/useAlert'
+import { alert, alertWarning, confirmDelete } from '@/composables/useAlert'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -25,6 +26,7 @@ const isModalOpen = ref(false)
 const recognizedItems = ref([])
 const isAnalyzing = ref(false)
 const isRecommending = ref(false)
+const isLoginRequiredModalOpen = ref(false)
 
 const isMember = computed(() => authStore.isAuthenticated)
 
@@ -99,11 +101,7 @@ const refreshList = async () => {
 
 const handleAddItem = async (item) => {
   if (!isMember.value) {
-    const shouldLogin = await confirm('로그인이 필요합니다.', {
-      title: '로그인 필요',
-      confirmText: '로그인하기',
-    })
-    if (shouldLogin) router.push('/login')
+    isLoginRequiredModalOpen.value = true
     return
   }
   try {
@@ -249,6 +247,11 @@ const handleAiRecommend = async () => {
       :is-loading="isAnalyzing"
       @close="isModalOpen = false"
       @confirm="handleAddMultipleItems"
+    />
+
+    <LoginRequiredModal
+      :is-open="isLoginRequiredModalOpen"
+      @close="isLoginRequiredModalOpen = false"
     />
   </div>
 </template>

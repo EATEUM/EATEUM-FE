@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import RecipePlayer from '@/components/recipe/RecipePlayer.vue'
 import RecipeInfoCard from '@/components/recipe/RecipeInfoCard.vue'
@@ -8,12 +8,12 @@ import RecipeSteps from '@/components/recipe/RecipeSteps.vue'
 import Memo from '@/components/memo/Memo.vue'
 import RecipeTimer from '@/components/recipe/RecipeTimer.vue'
 import RelatedVideos from '@/components/recipe/RelatedVideos.vue'
+import LoginRequiredModal from '@/components/common/LoginRequiredModal.vue'
 import recipeApi from '@/api/recipeApi.js'
-import { alert, confirm, confirmDelete } from '@/composables/useAlert'
+import { alert, confirmDelete } from '@/composables/useAlert'
 
 const authStore = useAuthStore()
 const route = useRoute()
-const router = useRouter()
 
 const recipeData = ref({
   recipeVideoId: null,
@@ -26,6 +26,7 @@ const recipeData = ref({
   isCompleted: false,
 })
 const isLoading = ref(true)
+const isLoginRequiredModalOpen = ref(false)
 
 const videoEmbedUrl = computed(() => {
   const url = recipeData.value.videoUrl
@@ -61,13 +62,7 @@ const fetchRecipeDetail = async () => {
 
 const handleToggleLike = async () => {
   if (!authStore.user) {
-    const shouldLogin = await confirm('로그인 후 이용 가능한 서비스입니다.\n로그인 페이지로 이동하시겠습니까?', {
-      title: '로그인 필요',
-      confirmText: '로그인하기'
-    })
-    if (shouldLogin) {
-      router.push({ name: 'Login' })
-    }
+    isLoginRequiredModalOpen.value = true
     return
   }
 
@@ -85,7 +80,7 @@ const handleToggleLike = async () => {
 
 const handleToggleComplete = async () => {
   if (!authStore.user) {
-    alert('로그인 후 이용 가능한 서비스입니다.', { title: '로그인 필요' })
+    isLoginRequiredModalOpen.value = true
     return
   }
 
@@ -173,4 +168,9 @@ onMounted(fetchRecipeDetail)
       class="h-10 w-10 animate-spin rounded-full border-4 border-amber-500 border-t-transparent"
     ></div>
   </div>
+
+  <LoginRequiredModal
+    :is-open="isLoginRequiredModalOpen"
+    @close="isLoginRequiredModalOpen = false"
+  />
 </template>

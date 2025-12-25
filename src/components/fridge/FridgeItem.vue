@@ -8,6 +8,7 @@ const props = defineProps({
 })
 
 const isImageError = ref(false)
+const isImageLoaded = ref(false)
 
 // 애플 이모지 CDN URL 생성 로직
 const appleEmojiUrl = computed(() => {
@@ -25,7 +26,7 @@ const categoryStyle = computed(() => {
 
   const meat = Array.from('🍗🐷🥩🥓🌭🍖🐔')
   const seafood = Array.from('🐟🦑🦐🦀🐚🦪🐙🍥🍣🌊🐳')
-  const veggie = Array.from('🥔🍠🧅🧄🌱🥬🥒🎃🍆🥕🫑🥦🌿🫚🪷🍄🫛🥗🎋') 
+  const veggie = Array.from('🥔🍠🧅🧄🌱🥬🥒🎃🍆🥕🫑🥦🌿🫚🪷🍄🫛🥗🎋')
   const fruit = Array.from('🍎🍐🍌🍋🍒🍍🥑🍓🫐🍇🍈🍊🍏')
   const dairyEgg = Array.from('🥚🥛🧀🧈🍦🍰')
   const grain = Array.from('🍚🍜🍞🥖🍡🥟🍤🌾🌮')
@@ -35,26 +36,37 @@ const categoryStyle = computed(() => {
     return { backgroundColor: '#FFD6D6' }
   if (seafood.includes(img) || name.includes('어') || name.includes('회'))
     return { backgroundColor: '#CDE4FF' }
-  if (veggie.includes(img) || name.includes('파') || name.includes('가지') || name.includes('버섯')) 
-    return { backgroundColor: '#D1FADF' } 
+  if (veggie.includes(img) || name.includes('파') || name.includes('가지') || name.includes('버섯'))
+    return { backgroundColor: '#D1FADF' }
   if (fruit.includes(img) || name.includes('사과') || name.includes('토마토'))
     return { backgroundColor: '#FFD9B3' }
   if (dairyEgg.includes(img) || name.includes('계란') || name.includes('달걀') || name.includes('우유'))
     return { backgroundColor: '#FEF08A' }
   if (grain.includes(img) || name.includes('면') || name.includes('빵'))
-    return { backgroundColor: '#E2E8F0' } 
+    return { backgroundColor: '#E2E8F0' }
   if (seasoning.includes(img) || name.includes('소스') || name.includes('스팸') || name.includes('김치'))
     return { backgroundColor: '#FBCFE8' }
 
-  return { backgroundColor: '#F3F4F6' } 
+  return { backgroundColor: '#F3F4F6' }
 })
 
-const emit = defineEmits(['delete-item']); 
+const emit = defineEmits(['delete-item']);
 
 // 삭제 버튼 클릭 시 실행되는 함수
 const onDelete = () => {
-  emit('delete-item', props.itemId); 
+  emit('delete-item', props.itemId);
 };
+
+// 이미지 로드 완료 핸들러
+const handleImageLoad = () => {
+  isImageLoaded.value = true
+}
+
+// 이미지 에러 핸들러
+const handleImageError = () => {
+  isImageError.value = true
+  isImageLoaded.value = true
+}
 </script>
 
 <template>
@@ -62,15 +74,26 @@ const onDelete = () => {
     class="group relative flex aspect-[1.3/1] w-full flex-col items-center justify-center rounded-2xl border border-stone-100 bg-white shadow-[0px_2px_8px_rgba(0,0,0,0.03)] transition-all hover:-translate-y-1"
   >
     <div
-      class="mb-1.5 flex h-20 w-20 items-center justify-center rounded-full"
+      class="mb-1.5 flex h-20 w-20 items-center justify-center rounded-full relative overflow-hidden"
       :style="categoryStyle"
     >
+      <!-- Skeleton Loading Animation -->
+      <div
+        v-if="!isImageLoaded && !isImageError"
+        class="absolute inset-0 skeleton-shimmer"
+      ></div>
+
+      <!-- Image -->
       <img
         v-if="!isImageError"
         :src="appleEmojiUrl"
-        class="h-[45px] w-[45px] object-contain drop-shadow-sm"
-        @error="isImageError = true"
+        class="h-[45px] w-[45px] object-contain drop-shadow-sm transition-opacity duration-300"
+        :class="{ 'opacity-0': !isImageLoaded, 'opacity-100': isImageLoaded }"
+        @load="handleImageLoad"
+        @error="handleImageError"
       />
+
+      <!-- Fallback Emoji -->
       <span v-else class="text-2xl">{{ itemImg }}</span>
     </div>
 
@@ -97,3 +120,26 @@ const onDelete = () => {
     </button>
   </div>
 </template>
+
+<style scoped>
+/* Skeleton shimmer animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+</style>

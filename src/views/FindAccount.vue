@@ -46,7 +46,9 @@ const handleFindEmail = async () => {
     }
   } catch (error) {
     console.error(error)
-    console.error(error.response?.data?.message || '일치하는 회원 정보를 찾을 수 없습니다.', { title: '조회 실패' })
+    console.error(error.response?.data?.message || '일치하는 회원 정보를 찾을 수 없습니다.', {
+      title: '조회 실패',
+    })
   }
 }
 
@@ -74,17 +76,22 @@ const handleResetPassword = async () => {
     const response = await userApi.findPassword(requestData)
 
     if (response.data.success) {
-      alertSuccess(response.data.data.message || '비밀번호가 변경되었습니다. 다시 로그인해주세요.', {
-        title: '변경 완료',
-        onConfirm: async () => {
-          await authStore.logout()
-          router.replace('/login')
-        }
-      })
+      alertSuccess(
+        response.data.data.message || '비밀번호가 변경되었습니다. 다시 로그인해주세요.',
+        {
+          title: '변경 완료',
+          onConfirm: async () => {
+            await authStore.logout()
+            router.replace('/login')
+          },
+        },
+      )
     }
   } catch (error) {
     console.error(error)
-    console.error(error.response?.data?.message || '정보 확인에 실패했습니다.', { title: '변경 실패' })
+    console.error(error.response?.data?.message || '정보 확인에 실패했습니다.', {
+      title: '변경 실패',
+    })
   }
 }
 
@@ -161,7 +168,11 @@ const inputStyle = 'h-12 rounded-xl border-gray-100 bg-gray-50 px-4 focus-visibl
           <div v-if="!foundEmail" class="space-y-4">
             <div class="space-y-1">
               <label class="pl-1 text-xs font-medium text-gray-500">이름</label>
-              <Input v-model="name" placeholder="가입시 등록한 이름" :class="inputStyle" />
+              <Input
+                v-model="name"
+                placeholder="가입 시 등록하신 이름을 입력해 주세요"
+                :class="inputStyle"
+              />
             </div>
             <div class="space-y-1">
               <label class="pl-1 text-xs font-medium text-gray-500">전화번호</label>

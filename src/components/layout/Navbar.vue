@@ -6,6 +6,7 @@ import LogoSymbol from '@/assets/logo/logo-symbol.png'
 import LogoEateum from '@/assets/logo/logo-eateum.png'
 import { Bell, Menu, Search, X } from 'lucide-vue-next' // Menu, X 아이콘 추가
 import UserProfile from '@/components/common/UserProfile.vue'
+import LoginRequiredModal from '@/components/common/LoginRequiredModal.vue'
 import { useAuthStore } from '@/stores/auth'
 import { confirm } from '@/composables/useAlert'
 
@@ -13,6 +14,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const isMobileMenuOpen = ref(false)
+const isLoginRequiredModalOpen = ref(false)
 
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 const userProfileUrl = computed(() => authStore.user?.profileImage || '')
@@ -42,8 +44,27 @@ const toggleMobileMenu = () => {
 const navLinks = [
   { name: '홈', path: '/' },
   { name: '나의 냉장고', path: '/fridge' },
-  { name: '마이페이지', path: '/my' },
+  { name: '마이페이지', path: '/my', requiresAuth: true },
 ]
+
+const handleNavClick = (link) => {
+  if (link.requiresAuth && !isAuthenticated.value) {
+    isLoginRequiredModalOpen.value = true
+    isMobileMenuOpen.value = false
+    return
+  }
+  router.push(link.path)
+  isMobileMenuOpen.value = false
+}
+
+const handleProfileClick = () => {
+  if (!isAuthenticated.value) {
+    isLoginRequiredModalOpen.value = true
+    return
+  }
+  router.push('/my')
+  isMobileMenuOpen.value = false
+}
 </script>
 
 <template>
@@ -59,14 +80,14 @@ const navLinks = [
       <div
         class="hidden md:absolute md:left-1/2 md:flex md:-translate-x-1/2 md:items-center md:gap-10"
       >
-        <RouterLink
+        <a
           v-for="link in navLinks"
           :key="link.name"
-          :to="link.path"
-          class="text-[15px] font-bold text-neutral-500 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:text-neutral-900"
+          @click.prevent="handleNavClick(link)"
+          class="cursor-pointer text-[15px] font-bold text-neutral-500 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:text-neutral-900"
         >
           {{ link.name }}
-        </RouterLink>
+        </a>
       </div>
 
       <div class="z-10 flex items-center gap-2 sm:gap-4">
@@ -81,7 +102,7 @@ const navLinks = [
           >
             <Bell :size="20" />
           </button>
-          <UserProfile :src="userProfileUrl" @click="router.push('/my')" class="cursor-pointer" />
+          <UserProfile :src="userProfileUrl" @click="handleProfileClick" class="cursor-pointer" />
         </div>
 
         <Button
@@ -102,15 +123,14 @@ const navLinks = [
       v-if="isMobileMenuOpen"
       class="absolute top-[65px] left-0 flex w-full flex-col items-center gap-4 border-b border-stone-100 bg-white py-4 shadow-lg md:hidden"
     >
-      <RouterLink
+      <a
         v-for="link in navLinks"
         :key="link.name"
-        :to="link.path"
-        @click="isMobileMenuOpen = false"
-        class="w-full py-2 text-center text-[16px] font-bold text-neutral-600 hover:bg-stone-50 hover:text-neutral-900"
+        @click.prevent="handleNavClick(link)"
+        class="w-full cursor-pointer py-2 text-center text-[16px] font-bold text-neutral-600 hover:bg-stone-50 hover:text-neutral-900"
       >
         {{ link.name }}
-      </RouterLink>
+      </a>
 
       <div v-if="isAuthenticated" class="mt-2 flex gap-4">
         <button
@@ -123,7 +143,7 @@ const navLinks = [
         >
           <Bell :size="20" />
         </button>
-        <UserProfile :src="userProfileUrl" @click="router.push('/my')" class="cursor-pointer" />
+        <UserProfile :src="userProfileUrl" @click="handleProfileClick" class="cursor-pointer" />
       </div>
       <Button
         @click="handleAuthAction"
@@ -132,5 +152,10 @@ const navLinks = [
         {{ isAuthenticated ? '로그아웃' : '로그인' }}
       </Button>
     </div>
+
+    <LoginRequiredModal
+      :is-open="isLoginRequiredModalOpen"
+      @close="isLoginRequiredModalOpen = false"
+    />
   </nav>
 </template>

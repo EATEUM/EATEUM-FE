@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onUnmounted, watch } from 'vue'
 import { X } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -49,6 +49,33 @@ const handleCancel = () => {
 const handleClose = () => {
   emit('close')
 }
+
+// Keyboard event handler
+const handleKeyDown = (event) => {
+  if (!props.isOpen) return
+
+  if (event.key === 'Enter') {
+    event.preventDefault()
+    handleConfirm()
+  } else if (event.key === 'Escape') {
+    event.preventDefault()
+    handleCancel()
+  }
+}
+
+// Add/remove keyboard listener when dialog opens/closes
+watch(() => props.isOpen, (isOpen) => {
+  if (isOpen) {
+    window.addEventListener('keydown', handleKeyDown)
+  } else {
+    window.removeEventListener('keydown', handleKeyDown)
+  }
+})
+
+// Cleanup on unmount
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyDown)
+})
 </script>
 
 <template>

@@ -15,7 +15,7 @@ import { Eye, EyeOff } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import ProfileImageUploader from '@/components/user/ProfileImageUploader.vue'
 import userApi from '@/api/userApi'
-import { alertSuccess } from '@/composables/useAlert'
+import { alertSuccess, alert, alertWarning } from '@/composables/useAlert'
 
 const router = useRouter()
 
@@ -43,13 +43,13 @@ const inputStyle =
   'pr-24 transition-shadow focus-visible:shadow-[0_0_15px_rgba(160,140,127,0.3)] focus-visible:ring-0'
 const checkEmailDuplicate = async () => {
   if (!email.value?.trim()) {
-    console.error('이메일을 입력해주세요.', { title: '입력 오류' })
+    alert('이메일을 입력해주세요.', { title: '입력 오류' })
     return
   }
 
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailPattern.test(email.value)) {
-    console.error('올바른 이메일 형식이 아닙니다. (예: example@email.com)', { title: '입력 오류' })
+    alert('올바른 이메일 형식이 아닙니다. (예: example@email.com)', { title: '입력 오류' })
     return
   }
 
@@ -59,23 +59,23 @@ const checkEmailDuplicate = async () => {
     isEmailAvailable.value = true
   } catch (error) {
     if (error.response && error.response.status === 409) {
-      console.error('이미 사용 중인 이메일입니다.', { title: '중복 확인' })
+      alertWarning('이미 사용 중인 이메일입니다.', { title: '중복 확인' })
       isEmailAvailable.value = false
     } else {
       console.error('중복 확인 중 오류 발생', error)
-      console.error('서버 오류로 확인에 실패했습니다.', { title: '서버 오류' })
+      alert('서버 오류로 확인에 실패했습니다.', { title: '서버 오류' })
       isEmailAvailable.value = false
     }
   }
 }
 const handleSubmit = async () => {
   if (!isEmailAvailable.value) {
-    console.error('이메일 중복 확인을 해주세요.', { title: '확인 필요' })
+    alertWarning('이메일 중복 확인을 해주세요.', { title: '확인 필요' })
     return
   }
 
   if (password.value !== passwordConfirm.value) {
-    console.error('비밀번호가 서로 일치하지 않습니다.', { title: '입력 오류' })
+    alertWarning('비밀번호가 서로 일치하지 않습니다.', { title: '입력 오류' })
     return
   }
 
@@ -104,11 +104,11 @@ const handleSubmit = async () => {
         onConfirm: () => router.push('/login'),
       })
     } else {
-      console.error(resData.message, { title: '회원가입 실패' })
+      alert(resData.message, { title: '회원가입 실패' })
     }
   } catch (error) {
     console.error('회원가입 에러:', error)
-    console.error(error.response?.data?.message || '회원가입 요청 중 오류가 발생했습니다.', {
+    alert(error.response?.data?.message || '회원가입 요청 중 오류가 발생했습니다.', {
       title: '서버 오류',
     })
   }
