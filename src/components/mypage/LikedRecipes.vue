@@ -1,31 +1,67 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, onUnmounted, nextTick } from 'vue'
 import { Heart, X } from 'lucide-vue-next'
 import recipeApi from '@/api/recipeApi'
 import { useRouter } from 'vue-router'
 import { confirm } from '@/composables/useAlert'
 
 const router = useRouter()
+
+// 상태 관리
 const likedRecipes = ref([])
+const currentPage = ref(1)
+const isLoading = ref(false)
+const hasMore = ref(true)
+const observerTarget = ref(null)
+let observer = null
 
 const goToDetail = (id) => {
   router.push({
     path: '/recipe-detail',
-    query: {
-      recipeVideoId: id,
-      mode: 'my',
-    },
+    query: { recipeVideoId: id, mode: 'my' },
   })
 }
 
+// 데이터 페칭 함수
 const fetchLikedRecipes = async () => {
+  if (isLoading.value || !hasMore.value) return
+
+  isLoading.value = true
   try {
-    const response = await recipeApi.getMyRecipes('liked', 1, 9)
+    const response = await recipeApi.getMyRecipes('liked', currentPage.value, 9)
     if (response.data.success) {
-      likedRecipes.value = response.data.data.items || []
+      const { items, totalItems } = response.data.data
+      const newItems = items || []
+
+      // 기존 리스트에 추가
+      likedRecipes.value = [...likedRecipes.value, ...newItems]
+
+      // 더 불러올 데이터가 있는지 확인
+      if (likedRecipes.value.length >= totalItems || newItems.length < 9) {
+        hasMore.value = false
+      } else {
+        currentPage.value++
+      }
+
+      // 데이터 로드 후 화면이 다 차지 않았을 경우를 대비해 즉시 체크
+      await nextTick()
+      setTimeout(() => {
+        checkIfBottomVisible()
+      }, 200)
     }
   } catch (error) {
     console.error('좋아요 레시피 조회 실패:', error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// 바닥 요소가 뷰포트 안에 있는지 수동 체크
+const checkIfBottomVisible = () => {
+  if (!observerTarget.value || !hasMore.value || isLoading.value) return
+  const rect = observerTarget.value.getBoundingClientRect()
+  if (rect.top < window.innerHeight) {
+    fetchLikedRecipes()
   }
 }
 
@@ -39,21 +75,46 @@ const toggleLike = async (recipeVideoId) => {
   try {
     const response = await recipeApi.buttonLike(recipeVideoId)
     if (response.data.success) {
-      await fetchLikedRecipes() // 목록 즉시 갱신
+      // 목록 초기화 및 재조회
+      likedRecipes.value = []
+      currentPage.value = 1
+      hasMore.value = true
+      await fetchLikedRecipes()
     }
   } catch (error) {
     console.error('좋아요 취소 실패:', error)
   }
 }
 
-onMounted(() => {
-  fetchLikedRecipes()
+onMounted(async () => {
+  await fetchLikedRecipes()
+
+  // 옵저버 설정
+  observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0].isIntersecting && hasMore.value && !isLoading.value) {
+        fetchLikedRecipes()
+      }
+    },
+    {
+      threshold: 0.1,
+      rootMargin: '100px',
+    },
+  )
+
+  if (observerTarget.value) {
+    observer.observe(observerTarget.value)
+  }
+})
+
+onUnmounted(() => {
+  if (observer) observer.disconnect()
 })
 </script>
 
 <template>
-  <div class="flex w-full flex-col items-center gap-10">
-    <div v-if="likedRecipes.length === 0" class="py-20 font-bold text-stone-400">
+  <div class="flex w-full flex-col items-center">
+    <div v-if="likedRecipes.length === 0 && !isLoading" class="py-20 font-bold text-stone-400">
       좋아요 표시한 레시피가 없습니다.
     </div>
 
@@ -117,6 +178,18 @@ onMounted(() => {
           </div>
         </div>
       </div>
+    </div>
+
+    <div ref="observerTarget" class="mt-12 flex h-20 w-full items-start justify-center">
+      <div v-if="isLoading" class="flex items-center gap-2 text-stone-400">
+        <div
+          class="h-5 w-5 animate-spin rounded-full border-2 border-stone-200 border-t-rose-400"
+        ></div>
+        <span class="text-sm">좋아요 목록을 불러오는 중...</span>
+      </div>
+      <p v-else-if="!hasMore && likedRecipes.length > 0" class="text-sm text-stone-300 italic">
+        - 모든 좋아요 레시피를 불러왔습니다 -
+      </p>
     </div>
   </div>
 </template>

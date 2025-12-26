@@ -24,10 +24,10 @@ const phone = ref('')
 const profileImageFile = ref(null)
 const isImageDeleted = ref(false)
 
-const oldPassword = ref('')
+const currentPassword = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
-const showOldPassword = ref(false)
+const showCurrentPassword = ref(false)
 const showNewPassword = ref(false)
 const showConfirmPassword = ref(false)
 
@@ -86,7 +86,7 @@ const updateBasicInfo = async () => {
 }
 
 const updatePassword = async () => {
-  if (!oldPassword.value || !newPassword.value || !confirmPassword.value) {
+  if (!currentPassword.value || !newPassword.value || !confirmPassword.value) {
     console.error('모든 비밀번호 필드를 입력해주세요.', { title: '입력 오류' })
     return
   }
@@ -101,37 +101,37 @@ const updatePassword = async () => {
 
   try {
     const payload = {
-      oldPassword: oldPassword.value,
+      currentPassword: currentPassword.value,
       newPassword: newPassword.value,
+      confirmPassword: confirmPassword.value,
     }
     await userApi.changePassword(payload)
 
     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } })
     alertSuccess('비밀번호가 성공적으로 변경되었습니다.', { title: '변경 완료' })
 
-    oldPassword.value = ''
+    currentPassword.value = ''
     newPassword.value = ''
     confirmPassword.value = ''
   } catch (error) {
-    console.error(error.response?.data?.message || '비밀번호 변경에 실패했습니다.', { title: '변경 실패' })
+    console.error(error.response?.data?.message || '비밀번호 변경에 실패했습니다.', {
+      title: '변경 실패',
+    })
   }
 }
 
 const handleWithdraw = async () => {
-  const isConfirmed = await confirmDelete(
-    '탈퇴 시 모든 데이터가 삭제되며 복구할 수 없습니다.',
-    {
-      title: '정말 탈퇴하시겠습니까?',
-      confirmText: '탈퇴'
-    }
-  )
+  const isConfirmed = await confirmDelete('탈퇴 시 모든 데이터가 삭제되며 복구할 수 없습니다.', {
+    title: '정말 탈퇴하시겠습니까?',
+    confirmText: '탈퇴',
+  })
 
   if (isConfirmed) {
     try {
       await authStore.withdraw()
       alertSuccess('그동안 이용해주셔서 감사합니다. 탈퇴가 완료되었습니다.', {
         title: '탈퇴 완료',
-        onConfirm: () => router.replace('/')
+        onConfirm: () => router.replace('/'),
       })
     } catch {
       console.error('탈퇴 처리 중 오류가 발생했습니다. 다시 시도해주세요.', { title: '탈퇴 오류' })
@@ -215,17 +215,17 @@ const inputStyle =
                 <Label class="ml-1 font-medium text-gray-700">현재 비밀번호</Label>
                 <div class="relative">
                   <Input
-                    v-model="oldPassword"
-                    :type="showOldPassword ? 'text' : 'password'"
+                    v-model="currentPassword"
+                    :type="showCurrentPassword ? 'text' : 'password'"
                     placeholder="현재 비밀번호를 입력하세요"
                     :class="inputStyle"
                   />
                   <button
                     type="button"
-                    @click="showOldPassword = !showOldPassword"
+                    @click="showCurrentPassword = !showCurrentPassword"
                     class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    <Eye v-if="!showOldPassword" class="h-5 w-5" />
+                    <Eye v-if="!showCurrentPassword" class="h-5 w-5" />
                     <EyeOff v-else class="h-5 w-5" />
                   </button>
                 </div>
