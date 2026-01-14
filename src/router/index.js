@@ -10,9 +10,16 @@ import FindAccountView from '@/views/FindAccount.vue'
 import MyPageView from '@/views/MyPageView.vue'
 import { useAuthStore } from '@/stores/auth.js'
 
+import IntroView from '@/views/IntroView.vue'
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    {
+      path: '/',
+      name: 'intro',
+      component: IntroView,
+    },
     { path: '/login', name: 'Login', component: LoginView },
     { path: '/signup', component: SignUpView },
     {
@@ -30,8 +37,8 @@ const router = createRouter({
     },
     { path: '/password-confirm', component: PasswordConfirmView },
     {
-      path: '/',
-      name: 'main',
+      path: '/home',
+      name: 'home',
       component: MainView,
     },
     {

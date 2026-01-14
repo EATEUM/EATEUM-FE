@@ -27,7 +27,7 @@ const handleAuthAction = async () => {
     })
     if (shouldLogout) {
       await authStore.logout()
-      router.push('/')
+      // Removed router.push('/') - authStore.logout() handles redirection to /home
       isMobileMenuOpen.value = false // 로그아웃 시 메뉴 닫기
     }
   } else {
@@ -42,7 +42,7 @@ const toggleMobileMenu = () => {
 }
 
 const navLinks = [
-  { name: '홈', path: '/' },
+  { name: '홈', path: '/home' },
   { name: '나의 냉장고', path: '/fridge' },
   { name: '마이페이지', path: '/my', requiresAuth: true },
 ]

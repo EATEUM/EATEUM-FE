@@ -1,5 +1,5 @@
 <script setup>
-import { RouterView } from 'vue-router'
+import { RouterView, useRoute } from 'vue-router'
 import Navbar from './components/layout/Navbar.vue'
 import Footer from './components/layout/Footer.vue'
 import ChatbotAside from '@/components/chat/ChatbotAside.vue'
@@ -7,6 +7,7 @@ import ChatbotButton from '@/components/chat/ChatbotButton.vue'
 import LoginRequiredModal from '@/components/common/LoginRequiredModal.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import { useAlert } from '@/composables/useAlert'
+import { computed } from 'vue'
 
 const {
   loginRequiredState,
@@ -16,20 +17,28 @@ const {
   handleConfirmConfirm,
   handleConfirmCancel
 } = useAlert()
+
+const route = useRoute()
+const isIntro = computed(() => route.path === '/')
 </script>
 
 <template>
   <div class="font-pretendard flex min-h-screen flex-col">
-    <Navbar />
+    <Navbar v-if="!isIntro" />
 
-    <main class="flex w-full flex-1 justify-center bg-[#F0EEE9] pt-16.25">
+    <main
+      class="flex w-full flex-1 justify-center bg-[#F0EEE9]"
+      :class="{ 'pt-16.25': !isIntro }"
+    >
       <div class="w-full">
         <RouterView />
       </div>
     </main>
-    <ChatbotAside />
-    <ChatbotButton />
-    <Footer />
+    <template v-if="!isIntro">
+      <ChatbotAside />
+      <ChatbotButton />
+      <Footer />
+    </template>
 
     <!-- 전역 다이얼로그 -->
     <LoginRequiredModal
