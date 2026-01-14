@@ -75,16 +75,31 @@ export const useAuthStore = defineStore(
       try {
         await userApi.logout()
       } catch (e) {
+        console.error('로그아웃 API 호출 실패:', e)
       } finally {
+        // 상태 초기화
         accessToken.value = null
         user.value = null
         isPasswordVerified.value = false
         delete api.defaults.headers.common['Authorization']
 
+        // 챗봇 상태 초기화
         const chatbotStore = useChatbotStore()
         chatbotStore.reset()
 
-        window.location.href = '/home'
+        // localStorage에서 인증 정보 명시적으로 삭제
+        // pinia-plugin-persistedstate가 사용하는 키 제거
+        try {
+          const persistKey = 'auth' // store의 id와 동일
+          localStorage.removeItem(persistKey)
+        } catch (e) {
+          console.error('localStorage 정리 실패:', e)
+        }
+
+        // 상태 업데이트가 완전히 반영되도록 약간의 지연 후 리다이렉트
+        setTimeout(() => {
+          window.location.href = '/home'
+        }, 100)
       }
     }
 
