@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import RecipePlayer from '@/components/recipe/RecipePlayer.vue'
@@ -124,6 +124,17 @@ const handleDeleteMemo = async (memoId) => {
     alert('메모 삭제에 실패했습니다.', { title: '삭제 실패' })
   }
 }
+
+watch(
+  () => route.query.recipeVideoId,
+  (newId) => {
+    if (newId) {
+      window.scrollTo(0, 0)
+      fetchRecipeDetail()
+    }
+  }
+)
+
 onMounted(fetchRecipeDetail)
 </script>
 

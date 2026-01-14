@@ -81,11 +81,10 @@ export const useAuthStore = defineStore(
         isPasswordVerified.value = false
         delete api.defaults.headers.common['Authorization']
 
-        // 로그아웃 시 채팅 초기화
         const chatbotStore = useChatbotStore()
         chatbotStore.reset()
 
-        window.location.href = '/'
+        window.location.href = '/home'
       }
     }
 

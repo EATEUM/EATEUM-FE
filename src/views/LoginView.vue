@@ -28,7 +28,7 @@ const handleLogin = async () => {
 
   try {
     await authStore.login(loginData)
-    router.replace('/')
+    router.replace('/home')
   } catch (error) {
     console.error('로그인 실패:', error)
 
