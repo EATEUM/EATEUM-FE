@@ -26,7 +26,7 @@ const goToFridge = () => {
 
     <main class="bento-container">
       <!-- 1. Hero Card: Left Big Box -->
-      <div class="card card-hero">
+      <RouterLink to="/home" class="card card-hero">
         <video autoplay loop muted playsinline class="hero-video">
           <source src="@/assets/intro/recipe_icon.mp4" type="video/mp4" />
         </video>
@@ -36,7 +36,7 @@ const goToFridge = () => {
             맛있는 요리가 시작되는 곳,<br />EAT:EUM과 함께하세요.
           </p>
         </div>
-      </div>
+      </RouterLink>
 
       <!-- 2. Fridge Feature: Top Middle -->
       <div class="card card-fridge cursor-pointer" @click="goToFridge">
@@ -71,8 +71,6 @@ const goToFridge = () => {
     </main>
   </div>
 </template>
-
-
 
 <style scoped>
 :root {
@@ -352,7 +350,7 @@ header {
     overflow-y: auto;
     height: auto;
   }
-  
+
   .bento-container {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto;
@@ -375,7 +373,8 @@ header {
     height: 300px;
   }
 
-  .card-stat, .card-cta {
+  .card-stat,
+  .card-cta {
     display: none; /* Old classes if they somehow stay */
   }
 
